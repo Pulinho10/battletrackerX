@@ -322,6 +322,34 @@ input,select,textarea{font-size:16px!important;min-height:44px}
 
 
 <section id="tab-tournaments" class="hidden">
+
+<div class="card">
+  <h2>Panorama dos torneios competitivos</h2>
+  <p class="hint">Considera apenas eventos com registros competitivos. Torneios com saldo exatamente zero não entram nas contagens positiva/negativa.</p>
+  <div class="chart-grid">
+    <div class="chart-card">
+      <h3>Saldo de vitórias por torneio</h3>
+      <div id="chartTournamentWinBalance" class="chart-bars"></div>
+    </div>
+    <div class="chart-card">
+      <h3>Saldo de pontos por torneio</h3>
+      <div id="chartTournamentPointBalance" class="chart-bars"></div>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>MVP por torneio</h2>
+  <p class="hint">MVP = combo com melhor aproveitamento no evento; em empate, vence o maior saldo de pontos, depois o maior número de vitórias e, por fim, o maior número de batalhas.</p>
+  <div class="tablewrap"><table>
+    <thead><tr>
+      <th>Torneio</th><th>MVP do Torneio</th><th>Batalhas</th><th>Vitórias</th><th>Derrotas</th>
+      <th>Aproveitamento</th><th>Pontos feitos</th><th>Pontos sofridos</th><th>Saldo</th>
+    </tr></thead>
+    <tbody id="tournamentMvpBody"></tbody>
+  </table></div>
+</div>
+
 <div class="card">
   <h2>Estatísticas por torneio</h2>
   <p class="hint">Selecione um evento para analisar o desempenho geral e o resultado de cada combo utilizado. Pontos sofridos são calculados pela pontuação padrão do tipo de finalização nas derrotas.</p>
@@ -338,6 +366,7 @@ input,select,textarea{font-size:16px!important;min-height:44px}
 </div>
 
 <div class="kpis" id="tournamentKpis"></div>
+<div class="card"><h2>MVP do torneio selecionado</h2><div id="selectedTournamentMvp" class="notice">Sem dados suficientes.</div></div>
 
 
 <div class="card">
@@ -1113,7 +1142,79 @@ function tournamentNames(){
   });
   return Object.entries(m).sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0],'pt-BR'));
 }
+
+function competitiveTournamentGroups(){
+  const groups={};
+  data.filter(b=>normalizeMode(b)==='Competitiva').forEach(b=>{
+    const name=String(b.tournament||'').trim();
+    if(!name)return;
+    (groups[name]??=[]).push(b);
+  });
+  return groups;
+}
+function tournamentBalances(){
+  const groups=competitiveTournamentGroups();
+  let winPositive=0,winNegative=0,winZero=0,pointPositive=0,pointNegative=0,pointZero=0;
+  Object.values(groups).forEach(rows=>{
+    const w=rows.filter(x=>x.result==='Vitória').length;
+    const l=rows.filter(x=>x.result==='Derrota').length;
+    const wb=w-l;
+    if(wb>0)winPositive++;else if(wb<0)winNegative++;else winZero++;
+    const pf=rows.reduce((s,b)=>s+pointsScoredByBattle(b),0);
+    const ps=rows.reduce((s,b)=>s+pointsConcededByBattle(b),0);
+    const pb=pf-ps;
+    if(pb>0)pointPositive++;else if(pb<0)pointNegative++;else pointZero++;
+  });
+  return {total:Object.keys(groups).length,winPositive,winNegative,winZero,pointPositive,pointNegative,pointZero};
+}
+function tournamentMvp(rows){
+  const combos=tournamentComboRows(rows);
+  if(!combos.length)return null;
+  return combos.sort((a,b)=>{
+    const ar=a.n?a.w/a.n:0,br=b.n?b.w/b.n:0;
+    const as=a.pf-a.ps,bs=b.pf-b.ps;
+    return br-ar || bs-as || b.w-a.w || b.n-a.n || (a.name||'').localeCompare(b.name||'','pt-BR');
+  })[0];
+}
+function renderTournamentOverview(){
+  const s=tournamentBalances();
+  renderSimpleBars('chartTournamentWinBalance',[
+    {label:'Saldo positivo de vitórias',value:s.winPositive},
+    {label:'Saldo negativo de vitórias',value:s.winNegative}
+  ],{top:2});
+  renderSimpleBars('chartTournamentPointBalance',[
+    {label:'Saldo positivo de pontos',value:s.pointPositive},
+    {label:'Saldo negativo de pontos',value:s.pointNegative}
+  ],{top:2});
+
+  const groups=competitiveTournamentGroups();
+  const rows=Object.entries(groups).map(([name,battles])=>{
+    const mvp=tournamentMvp(battles);
+    if(!mvp)return null;
+    return {name,mvp};
+  }).filter(Boolean).sort((a,b)=>a.name.localeCompare(b.name,'pt-BR'));
+
+  $('tournamentMvpBody').innerHTML=rows.length?rows.map(({name,mvp})=>{
+    const saldo=mvp.pf-mvp.ps,rate=mvp.n?Math.round(mvp.w/mvp.n*100):0;
+    return `<tr>
+      <td><b>${esc(name)}</b></td>
+      <td><b>${esc(mvp.name||comboLabelFromKey(mvp.key))}</b></td>
+      <td>${mvp.n}</td><td class="winText">${mvp.w}</td><td class="lossText">${mvp.l}</td>
+      <td><b>${rate}%</b></td><td>${mvp.pf}</td><td>${mvp.ps}</td>
+      <td class="${saldo>=0?'winText':'lossText'}"><b>${saldo>0?'+':''}${saldo}</b></td>
+    </tr>`;
+  }).join(''):'<tr><td colspan="9" class="empty">Nenhum torneio competitivo registrado.</td></tr>';
+}
+function renderSelectedTournamentMvp(ds){
+  const el=$('selectedTournamentMvp');if(!el)return;
+  const mvp=tournamentMvp(ds);
+  if(!mvp){el.innerHTML='Sem dados suficientes para definir o MVP.';return}
+  const saldo=mvp.pf-mvp.ps,rate=mvp.n?Math.round(mvp.w/mvp.n*100):0;
+  el.innerHTML=`<b>${esc(mvp.name||comboLabelFromKey(mvp.key))}</b> — ${mvp.w}V / ${mvp.l}D · ${rate}% de aproveitamento · PF ${mvp.pf} · PS ${mvp.ps} · saldo ${saldo>0?'+':''}${saldo}.`;
+}
+
 function refreshTournamentFilter(){
+  renderTournamentOverview();
   const rows=tournamentNames(),prev=$('tournamentStatsFilter')?.value||'';
   const sel=$('tournamentStatsFilter');
   if(!sel)return;
@@ -1155,6 +1256,7 @@ function tournamentOpponentRows(ds){
 function renderTournamentStats(){
   const ds=selectedTournamentData();
   renderTournamentCharts(ds);
+  renderSelectedTournamentMvp(ds);
   const w=ds.filter(x=>x.result==='Vitória').length,l=ds.filter(x=>x.result==='Derrota').length,n=ds.length;
   const pf=ds.reduce((s,b)=>s+pointsScoredByBattle(b),0),ps=ds.reduce((s,b)=>s+pointsConcededByBattle(b),0);
   const rate=n?Math.round(w/n*100):0,saldo=pf-ps;

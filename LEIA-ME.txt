@@ -100,3 +100,17 @@ ATUALIZAÇÃO — GRÁFICOS E HISTÓRICO AGRUPADO POR TORNEIO
 - O Histórico agora agrupa automaticamente todos os registros competitivos pelo campo Torneio / Evento.
 - Cada grupo mostra batalhas, vitórias, derrotas, aproveitamento, pontos feitos e pontos sofridos.
 - Registros de treino aparecem em um grupo separado.
+
+ATUALIZAÇÃO — SALDOS DE TORNEIO E MVP
+Na aba Torneios:
+- gráfico com quantidade de torneios competitivos com saldo positivo/negativo de vitórias
+- gráfico com quantidade de torneios competitivos com saldo positivo/negativo de pontos
+- torneios com saldo exatamente zero ficam fora das categorias positiva/negativa
+- tabela MVP por torneio
+- destaque do MVP no torneio atualmente selecionado
+
+Critério de MVP:
+1. maior aproveitamento
+2. maior saldo de pontos
+3. maior número de vitórias
+4. maior número de batalhas
