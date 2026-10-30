@@ -195,6 +195,11 @@ input,select,textarea{font-size:16px!important;min-height:44px}
   .nav button{flex:0 0 auto!important}
 }
 
+
+.finish-summary{display:grid;gap:2px;font-size:11px;line-height:1.25}
+.finish-summary span{white-space:nowrap}
+.matchup-zero{opacity:.6}
+
 </style>
 </head><body><div class="app">
 <div class="top"><div class="brand"><h1>⚡ Beyblade X — Battle Tracker</h1><p>Registro de partidas competitivas, treinos, combos e desempenho das peças.</p></div><div class="nav"><button data-tab="new" class="active">Nova batalha</button><button data-tab="combo-tests">Testes de Combos</button><button data-tab="history">Histórico</button><button data-tab="stats">Estatísticas</button><button data-tab="test-stats">Stats Testes</button><button data-tab="tournaments">Torneios</button><button data-tab="pieces">Peças</button></div></div>
@@ -382,6 +387,35 @@ input,select,textarea{font-size:16px!important;min-height:44px}
   <p class="hint">Esta análise usa exclusivamente os confrontos registrados no modo Testes de Combos e não interfere nas estatísticas competitivas ou de treino.</p>
 </div>
 <div class="kpis" id="testStatsKpis"></div>
+
+<div class="card">
+  <h2>Análise por combo testado</h2>
+  <p class="hint">Selecione um combo utilizado nos testes para ver seu desempenho específico contra cada um dos oito adversários pré-configurados.</p>
+  <div class="piece-stat-controls">
+    <div class="field">
+      <label>Combo do usuário</label>
+      <select id="testStatsComboFilter"><option value="">Nenhum combo testado</option></select>
+    </div>
+  </div>
+  <div class="mini-kpis" id="selectedTestComboKpis"></div>
+  <div class="tablewrap"><table>
+    <thead><tr>
+      <th>Combo adversário</th>
+      <th>Batalhas</th>
+      <th>Vencidas</th>
+      <th>Perdidas</th>
+      <th>Aproveitamento</th>
+      <th>PF</th>
+      <th>PS</th>
+      <th>Saldo</th>
+      <th>Média de pontos / batalha</th>
+      <th>Finalizações realizadas</th>
+      <th>Finalizações sofridas</th>
+    </tr></thead>
+    <tbody id="selectedTestComboMatchupsBody"></tbody>
+  </table></div>
+</div>
+
 <div class="card">
   <div class="chart-grid">
     <div class="chart-card"><h3>Vitórias × derrotas</h3><div id="testChartWinLoss" class="chart-bars"></div></div>
@@ -1498,8 +1532,89 @@ function testAggregateBy(keyFn){
   });
   return Object.values(m);
 }
+
+function testedComboRows(){
+  const m=new Map();
+  testRecords().forEach(b=>{
+    const key=comboKey(b);if(!key)return;
+    if(!m.has(key))m.set(key,{key,label:comboLabelFromKey(key),n:0});
+    m.get(key).n++;
+  });
+  return [...m.values()].sort((a,b)=>b.n-a.n||a.label.localeCompare(b.label,'pt-BR'));
+}
+function refreshTestStatsComboFilter(){
+  const sel=$('testStatsComboFilter');if(!sel)return '';
+  const prev=sel.value;
+  const rows=testedComboRows();
+  sel.innerHTML=rows.length
+    ? rows.map(x=>`<option value="${esc(x.key)}">${esc(x.label)} — ${x.n} teste${x.n===1?'':'s'}</option>`).join('')
+    : '<option value="">Nenhum combo testado</option>';
+  if(rows.some(x=>x.key===prev))sel.value=prev;
+  return sel.value||'';
+}
+function finishBreakdownHtml(finishMap,kind){
+  const parts=TEST_FINISHES.map(f=>{
+    const n=finishMap?.[f]?.[kind]||0;
+    return `<span>${finishShort(f)}: <b>${n}</b></span>`;
+  });
+  return `<div class="finish-summary">${parts.join('')}</div>`;
+}
+function selectedTestComboRecords(){
+  const key=$('testStatsComboFilter')?.value||'';
+  return key?testRecords().filter(b=>comboKey(b)===key):[];
+}
+function renderSelectedTestComboStats(){
+  const key=$('testStatsComboFilter')?.value||'';
+  const ds=selectedTestComboRecords();
+  const kpi=$('selectedTestComboKpis'),body=$('selectedTestComboMatchupsBody');
+  if(!kpi||!body)return;
+  if(!key){
+    kpi.innerHTML='';
+    body.innerHTML='<tr><td colspan="11" class="empty">Nenhum combo testado selecionado.</td></tr>';
+    return;
+  }
+
+  const n=ds.length,w=ds.filter(b=>b.result==='Vitória').length,l=ds.filter(b=>b.result==='Derrota').length;
+  const pf=ds.reduce((s,b)=>s+pointsScoredByBattle(b),0),ps=ds.reduce((s,b)=>s+pointsConcededByBattle(b),0);
+  const saldo=pf-ps,rate=n?Math.round(w/n*100):0,avg=n?pf/n:0;
+  const vals=[
+    ['Batalhas',n,''],['Vitórias',w,'winText'],['Derrotas',l,'lossText'],
+    ['Aproveitamento',rate+'%',''],['Saldo',(saldo>0?'+':'')+saldo,saldo>=0?'winText':'lossText'],
+    ['Média PF/batalha',avg.toFixed(2),'']
+  ];
+  kpi.innerHTML=vals.map(([l,n,c])=>`<div class="kpi"><div class="n ${c}">${n}</div><div class="l">${l}</div></div>`).join('');
+
+  body.innerHTML=TEST_OPPONENTS.map(opp=>{
+    const rows=ds.filter(b=>b.opponent===opp);
+    const total=rows.length,ow=rows.filter(b=>b.result==='Vitória').length,ol=rows.filter(b=>b.result==='Derrota').length;
+    const opf=rows.reduce((s,b)=>s+pointsScoredByBattle(b),0),ops=rows.reduce((s,b)=>s+pointsConcededByBattle(b),0);
+    const os=opf-ops,orate=total?Math.round(ow/total*100):0,oavg=total?opf/total:0;
+    const finish={};
+    TEST_FINISHES.forEach(f=>finish[f]={w:0,l:0});
+    rows.forEach(b=>{
+      const f=b.finish||'';
+      if(!finish[f])finish[f]={w:0,l:0};
+      if(b.result==='Vitória')finish[f].w++;else if(b.result==='Derrota')finish[f].l++;
+    });
+    return `<tr class="${total?'':'matchup-zero'}">
+      <td><b>${esc(opp)}</b></td>
+      <td>${total}</td>
+      <td class="winText">${ow}</td>
+      <td class="lossText">${ol}</td>
+      <td><b>${total?orate:0}%</b></td>
+      <td>${opf}</td>
+      <td>${ops}</td>
+      <td class="${os>=0?'winText':'lossText'}"><b>${os>0?'+':''}${os}</b></td>
+      <td>${oavg.toFixed(2)}</td>
+      <td>${finishBreakdownHtml(finish,'w')}</td>
+      <td>${finishBreakdownHtml(finish,'l')}</td>
+    </tr>`;
+  }).join('');
+}
+
 function renderTestStats(){
   const ds=testRecords();if(!$('testStatsKpis'))return;
+  refreshTestStatsComboFilter();
   const n=ds.length,w=ds.filter(b=>b.result==='Vitória').length,l=ds.filter(b=>b.result==='Derrota').length;
   const pf=ds.reduce((s,b)=>s+pointsScoredByBattle(b),0),ps=ds.reduce((s,b)=>s+pointsConcededByBattle(b),0),saldo=pf-ps,rate=n?Math.round(w/n*100):0;
   const vals=[['Testes',n,''],['Vitórias',w,'winText'],['Derrotas',l,'lossText'],['Aproveitamento',rate+'%',''],['PF',pf,'winText'],['PS',ps,'lossText'],['Saldo',(saldo>0?'+':'')+saldo,saldo>=0?'winText':'lossText']];
@@ -1512,6 +1627,7 @@ function renderTestStats(){
   $('testOpponentStatsBody').innerHTML=opp.length?opp.map(x=>{const s=x.pf-x.ps;return `<tr><td><b>${esc(x.key)}</b></td><td>${x.n}</td><td>${x.w}</td><td>${x.l}</td><td><b>${Math.round(x.w/x.n*100)}%</b></td><td>${x.pf}</td><td>${x.ps}</td><td class="${s>=0?'winText':'lossText'}"><b>${s>0?'+':''}${s}</b></td><td>${fcell(x,'Spin Finish')}</td><td>${fcell(x,'Over Finish')}</td><td>${fcell(x,'Burst Finish')}</td><td>${fcell(x,'Extreme Finish')}</td></tr>`}).join(''):'<tr><td colspan="12" class="empty">Nenhum teste registrado.</td></tr>';
   const combos=testAggregateBy(b=>comboKey(b)).map(x=>({...x,label:comboLabelFromKey(x.key)})).sort((a,b)=>(b.w/b.n)-(a.w/a.n)||(b.pf-b.ps)-(a.pf-a.ps)||b.n-a.n);
   $('testComboStatsBody').innerHTML=combos.length?combos.map(x=>{const s=x.pf-x.ps;return `<tr><td><b>${esc(x.label)}</b></td><td>${x.n}</td><td>${x.w}</td><td>${x.l}</td><td><b>${Math.round(x.w/x.n*100)}%</b></td><td>${x.pf}</td><td>${x.ps}</td><td class="${s>=0?'winText':'lossText'}"><b>${s>0?'+':''}${s}</b></td></tr>`}).join(''):'<tr><td colspan="8" class="empty">Nenhum combo testado.</td></tr>';
+  renderSelectedTestComboStats();
 }
 
 function renderAll(){renderKpis('quickKpis',data.filter(b=>normalizeMode(b)!=='Testes de Combos'));renderHistory();renderStats();renderTestStats();refreshTournamentFilter();renderTestOpponentCards();}
@@ -1555,6 +1671,7 @@ $('testUsedComboSelect').onchange=()=>{const i=+$('testUsedComboSelect').value,r
 $('testFavoriteComboSelect').onchange=()=>{const i=+$('testFavoriteComboSelect').value;if(Number.isInteger(i)&&favoriteCombos[i])setTestCombo(favoriteCombos[i].combo);$('testFavoriteComboSelect').value='';};
 ['testLockChip','testBlade','testOverBlade','testMetalBlade','testAssistBlade','testRatchet','testBit'].forEach(id=>{if($(id))$(id).addEventListener('change',updateTestComboPreview)});
 $('clearTestCombo').onclick=clearTestCombo;
+$('testStatsComboFilter').onchange=renderSelectedTestComboStats;
 
 $('opponentPresetSelect').onchange=()=>{const i=+$('opponentPresetSelect').value;if(Number.isInteger(i)&&opponentPresets[i])$('opponent').value=opponentPresets[i].text;$('opponentPresetSelect').value='';};
 $('saveOpponentPreset').onclick=saveOpponentPreset;

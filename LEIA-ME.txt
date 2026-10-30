@@ -160,3 +160,20 @@ Banco de peças:
 - inclui Kid Hunt / Kid (15/10/2026)
 - preserva lançamentos Hasbro já cadastrados e adiciona lacunas visíveis do catálogo 2026
 - lançamentos posteriores a 30/10/2026 não são tratados como já lançados
+
+ATUALIZAÇÃO — STATS TESTES POR COMBO
+
+A aba Stats Testes agora possui um seletor para cada combo efetivamente usado no modo Testes de Combos.
+
+Para o combo selecionado:
+- resumo geral de batalhas, vitórias, derrotas, aproveitamento, saldo e média de pontos feitos por batalha
+- análise separada contra cada um dos 8 adversários pré-configurados
+- batalhas vencidas e perdidas
+- aproveitamento
+- pontos feitos e pontos sofridos
+- saldo de pontos
+- média de pontos feitos por batalha
+- finalizações realizadas: Spin, Over, Burst e Extreme
+- finalizações sofridas: Spin, Over, Burst e Extreme
+
+Adversários ainda não enfrentados permanecem visíveis com valores zerados.
