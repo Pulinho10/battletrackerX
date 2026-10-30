@@ -114,3 +114,49 @@ Critério de MVP:
 2. maior saldo de pontos
 3. maior número de vitórias
 4. maior número de batalhas
+
+ATUALIZAÇÃO — BANCO DE PEÇAS 04/10/2026
+
+Incluídos lançamentos e lacunas do catálogo até 4 de outubro de 2026:
+Croco, Tiga, Tread, Tough, Quell, 5-50, Cutter Shinobi, Rampart Aegis,
+Seize Jaguar, Glare Cyclops/Cyclops Eye, Suppress Superion, Hells Nether,
+Hulk, Bumblebee, Hurricane Enlil, Mister Fantastic, Doctor Doom, Bucks,
+Enlil, NFC, AFC e LP (Low Point).
+
+Não foram incluídos como já lançados itens programados para 10/10/2026 ou depois,
+como LusterDragoon 6-60LC e o BX-53 All In One Set.
+
+Totais:
+Blades/nomeações: 209
+Lock Chips: 33
+Over Blades: 7
+Metal Blades: 7
+Assist Blades: 19
+Ratchets: 37
+Bits: 53
+
+ATUALIZAÇÃO — TESTES DE COMBOS + BANCO 30/10/2026
+
+Novo modo Testes de Combos:
+- usuário seleciona apenas o próprio combo
+- 8 adversários fixos pré-configurados:
+  Wizard Rod 1-60 H
+  Wizard Rod 9-60 FB
+  Shark Scale 1-70 LR
+  Aero Pegasus 7-60 R
+  Cobalt Dragoon 5-60 E
+  Meteor Dragoon 7-70 L
+  Glory Valkyrie R
+  Hover Wyvern 9-60 K
+- cada adversário possui botões diretos de Vitória/Derrota por Spin, Over, Burst e Extreme Finish
+- cada clique salva imediatamente um confronto
+- registros recebem mode = "Testes de Combos"
+- estatísticas de testes ficam isoladas das estatísticas competitivas e de treino
+- nova aba Stats Testes com KPIs, gráficos, desempenho por oponente e ranking de combos testados
+
+Banco de peças:
+- atualizado até 30/10/2026
+- inclui Luster Dragoon / LC (10/10/2026)
+- inclui Kid Hunt / Kid (15/10/2026)
+- preserva lançamentos Hasbro já cadastrados e adiciona lacunas visíveis do catálogo 2026
+- lançamentos posteriores a 30/10/2026 não são tratados como já lançados
