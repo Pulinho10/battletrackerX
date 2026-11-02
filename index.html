@@ -200,6 +200,12 @@ input,select,textarea{font-size:16px!important;min-height:44px}
 .finish-summary span{white-space:nowrap}
 .matchup-zero{opacity:.6}
 
+
+.test-opponent-head{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+.test-opponent-head .test-opponent-title{margin-bottom:0}
+.test-custom-badge{display:inline-block;font-size:9px;padding:3px 6px;border-radius:999px;border:1px solid #6b4f18;background:#3c2d0e;color:#fde68a;margin-left:6px;vertical-align:middle}
+.test-remove-custom{border:1px solid #7f1d1d;background:#3f1016;color:#fecdd3;border-radius:8px;padding:4px 7px;cursor:pointer;font-size:11px}
+
 </style>
 </head><body><div class="app">
 <div class="top"><div class="brand"><h1>⚡ Beyblade X — Battle Tracker</h1><p>Registro de partidas competitivas, treinos, combos e desempenho das peças.</p></div><div class="nav"><button data-tab="new" class="active">Nova batalha</button><button data-tab="combo-tests">Testes de Combos</button><button data-tab="history">Histórico</button><button data-tab="stats">Estatísticas</button><button data-tab="test-stats">Stats Testes</button><button data-tab="tournaments">Torneios</button><button data-tab="pieces">Peças</button></div></div>
@@ -269,7 +275,13 @@ input,select,textarea{font-size:16px!important;min-height:44px}
   </div>
 </div>
 <div class="card">
-  <h2>Confrontos pré-configurados</h2>
+  <h2>Combos oponentes</h2>
+  <p class="hint">Os oito combos originais permanecem fixos. Você também pode adicionar adversários personalizados; eles usarão os mesmos botões de registro por finalização.</p>
+  <div class="toolbar" style="margin-bottom:12px">
+    <input id="customTestOpponentInput" placeholder="Ex.: Silver Wolf 9-60 FB" style="min-width:280px;flex:1">
+    <button class="btn primary" id="addCustomTestOpponent" type="button">Adicionar combo personalizado</button>
+  </div>
+  <div id="customTestOpponentMsg" class="hint" style="margin-bottom:10px"></div>
   <div id="testOpponentCards" class="test-opponents"></div>
 </div>
 </section>
@@ -423,7 +435,7 @@ input,select,textarea{font-size:16px!important;min-height:44px}
   </div>
 </div>
 <div class="card">
-  <h2>Desempenho contra cada combo oponente</h2>
+  <h2>Desempenho contra cada combo oponente</h2><p class="hint">Inclui adversários fixos e personalizados usados nos Testes de Combos.</p>
   <div class="tablewrap"><table>
     <thead><tr><th>Oponente</th><th>Batalhas</th><th>Vitórias</th><th>Derrotas</th><th>Aproveitamento</th><th>PF</th><th>PS</th><th>Saldo</th><th>Spin V/D</th><th>Over V/D</th><th>Burst V/D</th><th>Extreme V/D</th></tr></thead>
     <tbody id="testOpponentStatsBody"></tbody>
@@ -1442,6 +1454,61 @@ const TEST_OPPONENTS=[
   'Glory Valkyrie R',
   'Hover Wyvern 9-60 K'
 ];
+
+const CUSTOM_TEST_OPPONENTS_KEY='beyblade_x_custom_test_opponents_v1';
+let customTestOpponents=[];
+function loadCustomTestOpponents(){
+  try{
+    const v=JSON.parse(localStorage.getItem(CUSTOM_TEST_OPPONENTS_KEY)||'[]');
+    customTestOpponents=Array.isArray(v)?v.map(x=>String(x||'').trim()).filter(Boolean):[];
+  }catch(_){customTestOpponents=[]}
+  const seen=new Set();
+  customTestOpponents=customTestOpponents.filter(x=>{
+    const k=x.toLocaleLowerCase('pt-BR');
+    if(seen.has(k))return false;seen.add(k);return true;
+  });
+}
+function saveCustomTestOpponents(){
+  localStorage.setItem(CUSTOM_TEST_OPPONENTS_KEY,JSON.stringify(customTestOpponents));
+}
+function allConfiguredTestOpponents(){
+  const seen=new Set();
+  return [...TEST_OPPONENTS,...customTestOpponents].filter(x=>{
+    const k=String(x).trim().toLocaleLowerCase('pt-BR');
+    if(!k||seen.has(k))return false;seen.add(k);return true;
+  });
+}
+function testStatsOpponentList(){
+  const recorded=testRecords().map(b=>String(b.opponent||'').trim()).filter(Boolean);
+  const seen=new Set();
+  return [...TEST_OPPONENTS,...customTestOpponents,...recorded].filter(x=>{
+    const k=x.toLocaleLowerCase('pt-BR');
+    if(seen.has(k))return false;seen.add(k);return true;
+  });
+}
+function isFixedTestOpponent(name){
+  return TEST_OPPONENTS.some(x=>x.toLocaleLowerCase('pt-BR')===String(name||'').trim().toLocaleLowerCase('pt-BR'));
+}
+function addCustomTestOpponent(){
+  const input=$('customTestOpponentInput'),msg=$('customTestOpponentMsg');
+  const name=String(input?.value||'').trim();
+  if(!name){if(msg)msg.textContent='Digite o combo oponente que deseja adicionar.';return}
+  const exists=allConfiguredTestOpponents().some(x=>x.toLocaleLowerCase('pt-BR')===name.toLocaleLowerCase('pt-BR'));
+  if(exists){if(msg)msg.textContent='Esse combo já está disponível nos testes.';return}
+  customTestOpponents.push(name);
+  saveCustomTestOpponents();
+  if(input)input.value='';
+  if(msg)msg.textContent=`Combo personalizado adicionado: ${name}`;
+  renderTestOpponentCards();renderTestStats();
+}
+function removeCustomTestOpponent(name){
+  if(isFixedTestOpponent(name))return;
+  if(!confirm(`Remover "${name}" da lista de combos personalizados? Os confrontos já registrados permanecerão no histórico e nas estatísticas.`))return;
+  customTestOpponents=customTestOpponents.filter(x=>x!==name);
+  saveCustomTestOpponents();
+  renderTestOpponentCards();renderTestStats();
+}
+
 const TEST_FINISHES=['Spin Finish','Over Finish','Burst Finish','Extreme Finish'];
 function testRecords(){return data.filter(b=>normalizeMode(b)==='Testes de Combos')}
 function testSelectMap(){return {lockChip:'testLockChip',blade:'testBlade',overBlade:'testOverBlade',metalBlade:'testMetalBlade',assistBlade:'testAssistBlade',ratchet:'testRatchet',bit:'testBit'}}
@@ -1501,13 +1568,21 @@ function clearTestCombo(){
 function finishShort(f){return ({'Spin Finish':'Spin','Over Finish':'Over','Burst Finish':'Burst','Extreme Finish':'Extreme'})[f]||f}
 function renderTestOpponentCards(){
   const root=$('testOpponentCards');if(!root)return;
-  const ds=testRecords();
-  root.innerHTML=TEST_OPPONENTS.map((opp,i)=>{
+  const ds=testRecords(),opponents=allConfiguredTestOpponents();
+  root.innerHTML=opponents.map((opp,i)=>{
     const rows=ds.filter(b=>b.opponent===opp),w=rows.filter(b=>b.result==='Vitória').length,l=rows.filter(b=>b.result==='Derrota').length;
     const rate=rows.length?Math.round(w/rows.length*100):0;
+    const custom=!isFixedTestOpponent(opp);
     const winBtns=TEST_FINISHES.map(f=>`<button type="button" class="test-win" onclick='recordComboTest(${JSON.stringify(opp)},"Vitória",${JSON.stringify(f)})'>✓ ${finishShort(f)}<span class="test-finish-label">Vitória</span></button>`).join('');
     const lossBtns=TEST_FINISHES.map(f=>`<button type="button" class="test-loss" onclick='recordComboTest(${JSON.stringify(opp)},"Derrota",${JSON.stringify(f)})'>✕ ${finishShort(f)}<span class="test-finish-label">Derrota</span></button>`).join('');
-    return `<div class="test-opponent-card"><div class="test-opponent-title">${i+1}. ${esc(opp)}</div><div class="test-opponent-stats">${rows.length} testes · ${w}V / ${l}D · ${rate}%</div><div class="test-result-section"><div class="test-result-caption">VITÓRIA POR</div><div class="finish-action-grid">${winBtns}</div></div><div class="test-result-section"><div class="test-result-caption">DERROTA POR</div><div class="finish-action-grid">${lossBtns}</div></div></div>`;
+    const remove=custom?`<button type="button" class="test-remove-custom" title="Remover combo personalizado" onclick='removeCustomTestOpponent(${JSON.stringify(opp)})'>Remover</button>`:'';
+    const badge=custom?'<span class="test-custom-badge">Personalizado</span>':'';
+    return `<div class="test-opponent-card">
+      <div class="test-opponent-head"><div class="test-opponent-title">${i+1}. ${esc(opp)} ${badge}</div>${remove}</div>
+      <div class="test-opponent-stats">${rows.length} testes · ${w}V / ${l}D · ${rate}%</div>
+      <div class="test-result-section"><div class="test-result-caption">VITÓRIA POR</div><div class="finish-action-grid">${winBtns}</div></div>
+      <div class="test-result-section"><div class="test-result-caption">DERROTA POR</div><div class="finish-action-grid">${lossBtns}</div></div>
+    </div>`;
   }).join('');
 }
 function recordComboTest(opponent,result,finish){
@@ -1584,7 +1659,7 @@ function renderSelectedTestComboStats(){
   ];
   kpi.innerHTML=vals.map(([l,n,c])=>`<div class="kpi"><div class="n ${c}">${n}</div><div class="l">${l}</div></div>`).join('');
 
-  body.innerHTML=TEST_OPPONENTS.map(opp=>{
+  body.innerHTML=testStatsOpponentList().map(opp=>{
     const rows=ds.filter(b=>b.opponent===opp);
     const total=rows.length,ow=rows.filter(b=>b.result==='Vitória').length,ol=rows.filter(b=>b.result==='Derrota').length;
     const opf=rows.reduce((s,b)=>s+pointsScoredByBattle(b),0),ops=rows.reduce((s,b)=>s+pointsConcededByBattle(b),0);
@@ -1646,7 +1721,7 @@ if(!bit){alert('Selecione ou informe o Bit.');return}
 const b={id:'b-'+Date.now(),createdAt:new Date().toISOString(),mode:$('battleMode').value,tournament:$('tournament').value.trim(),game:$('game').value.trim(),round:+$('round').value||1,lockChip:selectPieceValue('lockChip'),blade,overBlade:selectPieceValue('overBlade'),metalBlade:selectPieceValue('metalBlade'),assistBlade:selectPieceValue('assistBlade'),ratchet,bit,opponent:$('opponent').value.trim(),result:currentResult,finish:$('finish').value,points:pointFor(currentResult,$('finish').value),notes:$('notes').value.trim(),source:'Aplicativo'};data.push(b);save();refreshComboQuickMenus();$('saveMsg').textContent='Batalha salva ✓';setTimeout(()=>$('saveMsg').textContent='',1800);clearForm();renderAll();}
 function dl(name,content,type){const blob=new Blob([content],{type});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
 function csv(){const cols=['mode','tournament','game','round','lockChip','blade','overBlade','metalBlade','assistBlade','ratchet','bit','opponent','result','finish','points','notes'];const q=v=>'"'+String(v??'').replace(/"/g,'""')+'"';return '\ufeff'+[cols.join(';'),...data.map(b=>cols.map(c=>q(b[c])).join(';'))].join('\r\n')}
-function init(){load();loadCollection();loadFavoriteCombos();loadOpponentPresets();refreshBattleDatalists();bindPieceDropdowns();refreshTestPieceSelects();renderPieces();renderCollection();setTimeout(()=>hydratePieceImages($('tab-pieces')),0);renderOpponentPresets();refreshOpponentPresetMenu();renderFavoriteCombos();refreshComboQuickMenus();renderAll();updateResultUI();updateFavoritePreview();
+function init(){load();loadCollection();loadFavoriteCombos();loadOpponentPresets();loadCustomTestOpponents();refreshBattleDatalists();bindPieceDropdowns();refreshTestPieceSelects();renderPieces();renderCollection();setTimeout(()=>hydratePieceImages($('tab-pieces')),0);renderOpponentPresets();refreshOpponentPresetMenu();renderFavoriteCombos();refreshComboQuickMenus();renderAll();updateResultUI();updateFavoritePreview();
  document.querySelectorAll('.nav button').forEach(btn=>btn.onclick=()=>{document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('active'));btn.classList.add('active');['new','combo-tests','history','stats','test-stats','tournaments','pieces'].forEach(t=>$('tab-'+t).classList.toggle('hidden',t!==btn.dataset.tab));if(btn.dataset.tab==='history')renderHistory();if(btn.dataset.tab==='stats')renderStats();if(btn.dataset.tab==='combo-tests'){refreshTestPieceSelects();renderTestOpponentCards();}if(btn.dataset.tab==='test-stats')renderTestStats();if(btn.dataset.tab==='tournaments')refreshTournamentFilter()});
  
  document.querySelectorAll('[data-add-piece]').forEach(btn=>btn.onclick=()=>{
@@ -1671,6 +1746,8 @@ $('testUsedComboSelect').onchange=()=>{const i=+$('testUsedComboSelect').value,r
 $('testFavoriteComboSelect').onchange=()=>{const i=+$('testFavoriteComboSelect').value;if(Number.isInteger(i)&&favoriteCombos[i])setTestCombo(favoriteCombos[i].combo);$('testFavoriteComboSelect').value='';};
 ['testLockChip','testBlade','testOverBlade','testMetalBlade','testAssistBlade','testRatchet','testBit'].forEach(id=>{if($(id))$(id).addEventListener('change',updateTestComboPreview)});
 $('clearTestCombo').onclick=clearTestCombo;
+$('addCustomTestOpponent').onclick=addCustomTestOpponent;
+$('customTestOpponentInput').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();addCustomTestOpponent();}});
 $('testStatsComboFilter').onchange=renderSelectedTestComboStats;
 
 $('opponentPresetSelect').onchange=()=>{const i=+$('opponentPresetSelect').value;if(Number.isInteger(i)&&opponentPresets[i])$('opponent').value=opponentPresets[i].text;$('opponentPresetSelect').value='';};
@@ -1679,7 +1756,7 @@ $('saveCurrentOpponentPreset').onclick=saveOpponentPresetFromForm;
 $('saveFavoriteCombo').onclick=saveCurrentFavorite;
 ['lockChipSelect','bladeSelect','overBladeSelect','metalBladeSelect','assistBladeSelect','ratchetSelect','bitSelect','lockChipManual','bladeManual','overBladeManual','metalBladeManual','assistBladeManual','ratchetManual','bitManual'].forEach(id=>{const e=$(id);if(e)e.addEventListener('input',updateFavoritePreview)});
 $('battleMode').onchange=()=>{if($('battleMode').value==='__tests__'){document.querySelector('[data-tab="combo-tests"]').click();$('battleMode').value='Competitiva';}};
-$('winBtn').onclick=()=>{currentResult='Vitória';updateResultUI()};$('lossBtn').onclick=()=>{currentResult='Derrota';updateResultUI()};$('finish').onchange=updateResultUI;$('saveBtn').onclick=addBattle;$('clearBtn').onclick=clearForm;['search','filterMode','filterResult','filterFinish'].forEach(x=>$(x).addEventListener('input',renderHistory));$('tournamentStatsFilter').onchange=renderTournamentStats;$('tournamentModeFilter').onchange=renderTournamentStats;$('statsScope').onchange=renderStats;$('matchupUserComboFilter').onchange=renderMatchupDetail;$('matchupOpponentFilter').onchange=renderMatchupDetail;$('matchupMinBattles').onchange=renderMatchupRanking;$('opponentComboFilter').onchange=renderOpponentDetail;$('opponentMinBattles').onchange=renderOpponentRanking;$('comboNameFilter').onchange=renderComboDetail;$('comboMinBattles').onchange=renderComboRanking;$('pieceTypeFilter').onchange=refreshPieceNames;$('pieceNameFilter').onchange=renderPieceDetail;$('pieceRankingType').onchange=renderPieceRanking;$('exportCsv').onclick=()=>dl('beyblade_x_batalhas.csv',csv(),'text/csv;charset=utf-8');$('exportJson').onclick=()=>dl('beyblade_x_backup.json',JSON.stringify({battles:data,collection,favoriteCombos,opponentPresets},null,2),'application/json');$('importJson').onchange=e=>{const f=e.target.files[0];if(!f)return;const rd=new FileReader();rd.onload=()=>{try{const v=JSON.parse(rd.result);const battles=Array.isArray(v)?v:v.battles;if(!Array.isArray(battles))throw 0;if(confirm('Substituir o histórico atual pelo backup selecionado?')){data=battles;if(v&&v.collection){COLLECTION_TYPES.forEach(k=>collection[k]=Array.isArray(v.collection[k])?v.collection[k]:[]);saveCollection();renderCollection();refreshBattleDatalists();}if(v&&Array.isArray(v.favoriteCombos)){favoriteCombos=v.favoriteCombos;saveFavoriteCombos();renderFavoriteCombos();refreshComboQuickMenus();}if(v&&Array.isArray(v.opponentPresets)){opponentPresets=v.opponentPresets;saveOpponentPresets();renderOpponentPresets();refreshOpponentPresetMenu();}save();renderAll();alert('Backup importado.')}}catch(_){alert('Arquivo JSON inválido.')}};rd.readAsText(f);e.target.value=''};
+$('winBtn').onclick=()=>{currentResult='Vitória';updateResultUI()};$('lossBtn').onclick=()=>{currentResult='Derrota';updateResultUI()};$('finish').onchange=updateResultUI;$('saveBtn').onclick=addBattle;$('clearBtn').onclick=clearForm;['search','filterMode','filterResult','filterFinish'].forEach(x=>$(x).addEventListener('input',renderHistory));$('tournamentStatsFilter').onchange=renderTournamentStats;$('tournamentModeFilter').onchange=renderTournamentStats;$('statsScope').onchange=renderStats;$('matchupUserComboFilter').onchange=renderMatchupDetail;$('matchupOpponentFilter').onchange=renderMatchupDetail;$('matchupMinBattles').onchange=renderMatchupRanking;$('opponentComboFilter').onchange=renderOpponentDetail;$('opponentMinBattles').onchange=renderOpponentRanking;$('comboNameFilter').onchange=renderComboDetail;$('comboMinBattles').onchange=renderComboRanking;$('pieceTypeFilter').onchange=refreshPieceNames;$('pieceNameFilter').onchange=renderPieceDetail;$('pieceRankingType').onchange=renderPieceRanking;$('exportCsv').onclick=()=>dl('beyblade_x_batalhas.csv',csv(),'text/csv;charset=utf-8');$('exportJson').onclick=()=>dl('beyblade_x_backup.json',JSON.stringify({battles:data,collection,favoriteCombos,opponentPresets,customTestOpponents},null,2),'application/json');$('importJson').onchange=e=>{const f=e.target.files[0];if(!f)return;const rd=new FileReader();rd.onload=()=>{try{const v=JSON.parse(rd.result);const battles=Array.isArray(v)?v:v.battles;if(!Array.isArray(battles))throw 0;if(confirm('Substituir o histórico atual pelo backup selecionado?')){data=battles;if(v&&v.collection){COLLECTION_TYPES.forEach(k=>collection[k]=Array.isArray(v.collection[k])?v.collection[k]:[]);saveCollection();renderCollection();refreshBattleDatalists();}if(v&&Array.isArray(v.favoriteCombos)){favoriteCombos=v.favoriteCombos;saveFavoriteCombos();renderFavoriteCombos();refreshComboQuickMenus();}if(v&&Array.isArray(v.opponentPresets)){opponentPresets=v.opponentPresets;saveOpponentPresets();renderOpponentPresets();refreshOpponentPresetMenu();}if(v&&Array.isArray(v.customTestOpponents)){customTestOpponents=v.customTestOpponents.map(x=>String(x||'').trim()).filter(Boolean);saveCustomTestOpponents();}save();renderAll();alert('Backup importado.')}}catch(_){alert('Arquivo JSON inválido.')}};rd.readAsText(f);e.target.value=''};
 }
 init();
 </script>

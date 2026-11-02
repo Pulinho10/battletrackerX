@@ -177,3 +177,16 @@ Para o combo selecionado:
 - finalizações sofridas: Spin, Over, Burst e Extreme
 
 Adversários ainda não enfrentados permanecem visíveis com valores zerados.
+
+ATUALIZAÇÃO — OPONENTES PERSONALIZADOS EM TESTES DE COMBOS
+
+- Mantidos os 8 adversários pré-configurados originais.
+- Novo campo para adicionar qualquer combo oponente personalizado.
+- Cada adversário personalizado recebe os mesmos 8 botões:
+  Vitória por Spin / Over / Burst / Extreme
+  Derrota por Spin / Over / Burst / Extreme
+- Combos personalizados ficam salvos no dispositivo.
+- É possível removê-los da lista sem apagar confrontos já registrados.
+- Confrontos antigos contra adversários removidos continuam no histórico e nas estatísticas.
+- Stats Testes e análise individual por combo incluem adversários personalizados.
+- O backup JSON agora inclui também a lista de combos personalizados de testes.
