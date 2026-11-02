@@ -283,6 +283,27 @@ thead th{
   .brand-copy h1{font-size:22px}
 }
 
+
+.sortable-ranking{
+  cursor:pointer;
+  user-select:none;
+  transition:background .15s ease,color .15s ease;
+}
+.sortable-ranking:hover{
+  background:#171a20 !important;
+  color:#fff;
+}
+.sortable-ranking.active-sort{
+  color:var(--accent2);
+  background:#121923 !important;
+}
+.sort-arrow{
+  display:inline-block;
+  min-width:12px;
+  margin-left:3px;
+  font-size:11px;
+}
+
 </style>
 </head><body><div class="app">
 <div class="top"><div class="brand brand-enhanced">
@@ -436,6 +457,7 @@ thead th{
 </div>
 <div class="card">
 <h2>Ranking de matchups</h2>
+<div class="hint">Exibindo cerca de 10 linhas por vez. Role a lista para visualizar os demais itens. Clique em <b>Aproveitamento</b>, <b>Pontos</b> ou em uma das colunas de finalização para alterar a classificação.</div>
 <div class="toolbar">
 <select id="matchupMinBattles">
 <option value="1">Mín. 1 confronto</option>
@@ -443,10 +465,18 @@ thead th{
 <option value="3">Mín. 3 confrontos</option>
 <option value="5">Mín. 5 confrontos</option>
 </select>
-<span class="hint">Cada linha representa um confronto específico entre o seu combo e um combo adversário.</span>
+<span id="matchupSortStatus" class="hint">Classificação: Aproveitamento ↓</span>
 </div>
-<div class="tablewrap"><table>
-<thead><tr><th>Seu combo</th><th>Combo adversário</th><th>Batalhas</th><th>Vitórias</th><th>Derrotas</th><th>Aproveitamento</th><th>Pontos</th><th>Spin V/D</th><th>Over V/D</th><th>Burst V/D</th><th>Extreme V/D</th></tr></thead>
+<div class="tablewrap ranking-scroll-wrap"><table>
+<thead><tr>
+<th>Seu combo</th><th>Combo adversário</th><th>Batalhas</th><th>Vitórias</th><th>Derrotas</th>
+<th class="sortable-ranking" data-matchup-sort="rate" title="Ordenar por aproveitamento">Aproveitamento <span class="sort-arrow" data-sort-arrow="rate">↓</span></th>
+<th class="sortable-ranking" data-matchup-sort="points" title="Ordenar por pontos">Pontos <span class="sort-arrow" data-sort-arrow="points"></span></th>
+<th class="sortable-ranking" data-matchup-sort="Spin Finish" title="Ordenar pelo saldo de Spin Finish">Spin V/D <span class="sort-arrow" data-sort-arrow="Spin Finish"></span></th>
+<th class="sortable-ranking" data-matchup-sort="Over Finish" title="Ordenar pelo saldo de Over Finish">Over V/D <span class="sort-arrow" data-sort-arrow="Over Finish"></span></th>
+<th class="sortable-ranking" data-matchup-sort="Burst Finish" title="Ordenar pelo saldo de Burst Finish">Burst V/D <span class="sort-arrow" data-sort-arrow="Burst Finish"></span></th>
+<th class="sortable-ranking" data-matchup-sort="Extreme Finish" title="Ordenar pelo saldo de Extreme Finish">Extreme V/D <span class="sort-arrow" data-sort-arrow="Extreme Finish"></span></th>
+</tr></thead>
 <tbody id="matchupRankingBody"></tbody>
 </table></div>
 </div>
@@ -457,8 +487,18 @@ thead th{
 <div id="opponentComboKpis" class="mini-kpis"></div>
 <div class="detail-grid"><div><h3>Vitórias contra este combo</h3><div id="opponentWinFinish"></div></div><div><h3>Derrotas contra este combo</h3><div id="opponentLossFinish"></div></div></div>
 </div>
-<div class="card"><h2>Ranking contra combos adversários</h2><div class="hint">Exibindo cerca de 10 linhas por vez. Role a lista para visualizar os demais itens.</div><div class="toolbar"><select id="opponentMinBattles"><option value="1">Mín. 1 batalha</option><option value="2">Mín. 2 batalhas</option><option value="3">Mín. 3 batalhas</option><option value="5">Mín. 5 batalhas</option></select></div>
-<div class="tablewrap ranking-scroll-wrap"><table><thead><tr><th>Combo adversário</th><th>Batalhas</th><th>Vitórias</th><th>Derrotas</th><th>Aproveitamento</th><th>Pontos</th><th>Spin V/D</th><th>Over V/D</th><th>Burst V/D</th><th>Extreme V/D</th></tr></thead><tbody id="opponentRankingBody"></tbody></table></div></div>
+<div class="card"><h2>Ranking contra combos adversários</h2>
+<div class="hint">Exibindo cerca de 10 linhas por vez. Role a lista para visualizar os demais itens. Clique em uma coluna de desempenho para alterar a classificação.</div>
+<div class="toolbar"><select id="opponentMinBattles"><option value="1">Mín. 1 batalha</option><option value="2">Mín. 2 batalhas</option><option value="3">Mín. 3 batalhas</option><option value="5">Mín. 5 batalhas</option></select><span id="opponentSortStatus" class="hint">Classificação: Aproveitamento ↓</span></div>
+<div class="tablewrap ranking-scroll-wrap"><table><thead><tr>
+<th>Combo adversário</th><th>Batalhas</th><th>Vitórias</th><th>Derrotas</th>
+<th class="sortable-ranking" data-opponent-sort="rate">Aproveitamento <span class="sort-arrow" data-opponent-arrow="rate">↓</span></th>
+<th class="sortable-ranking" data-opponent-sort="points">Pontos <span class="sort-arrow" data-opponent-arrow="points"></span></th>
+<th class="sortable-ranking" data-opponent-sort="Spin Finish">Spin V/D <span class="sort-arrow" data-opponent-arrow="Spin Finish"></span></th>
+<th class="sortable-ranking" data-opponent-sort="Over Finish">Over V/D <span class="sort-arrow" data-opponent-arrow="Over Finish"></span></th>
+<th class="sortable-ranking" data-opponent-sort="Burst Finish">Burst V/D <span class="sort-arrow" data-opponent-arrow="Burst Finish"></span></th>
+<th class="sortable-ranking" data-opponent-sort="Extreme Finish">Extreme V/D <span class="sort-arrow" data-opponent-arrow="Extreme Finish"></span></th>
+</tr></thead><tbody id="opponentRankingBody"></tbody></table></div></div>
 <div class="card combo-stats-card">
 <h2>Estatísticas por combo</h2>
 <p class="hint">Cada combo é identificado pela combinação exata das peças registradas na partida. Lock Chip e Assist Blade entram no cálculo quando forem informados; nos rounds históricos, o combo é formado pelas peças disponíveis no registro.</p>
@@ -471,20 +511,22 @@ thead th{
   <div><h3>Derrotas deste combo</h3><div id="comboLossFinish"></div></div>
 </div>
 </div>
-<div class="card"><h2>Ranking de combos utilizados</h2><div class="hint">Exibindo cerca de 10 linhas por vez. Role a lista para visualizar os demais itens.</div><div class="toolbar">
-  <select id="comboMinBattles">
-    <option value="1">Mín. 1 batalha</option>
-    <option value="2">Mín. 2 batalhas</option>
-    <option value="3">Mín. 3 batalhas</option>
-    <option value="5">Mín. 5 batalhas</option>
-    <option value="10">Mín. 10 batalhas</option>
-  </select>
-  <span class="hint">Ordenado por aproveitamento; em caso de empate, aparecem primeiro os combos mais utilizados.</span>
+<div class="card"><h2>Ranking de combos utilizados</h2>
+<div class="hint">Exibindo cerca de 10 linhas por vez. Role a lista para visualizar os demais itens. Clique em uma coluna de desempenho para alterar a classificação.</div>
+<div class="toolbar">
+<select id="comboMinBattles"><option value="1">Mín. 1 batalha</option><option value="2">Mín. 2 batalhas</option><option value="3">Mín. 3 batalhas</option><option value="5">Mín. 5 batalhas</option><option value="10">Mín. 10 batalhas</option></select>
+<span id="comboSortStatus" class="hint">Classificação: Aproveitamento ↓</span>
 </div>
-<div class="tablewrap ranking-scroll-wrap"><table><thead><tr><th>Combo</th><th>Batalhas</th><th>Vitórias</th><th>Derrotas</th><th>Aproveitamento</th><th>Pontos</th><th>Pontos/Batalha</th><th>Spin V/D</th><th>Over V/D</th><th>Burst V/D</th><th>Extreme V/D</th></tr></thead>
-<tbody id="comboRankingBody"></tbody>
-</table></div>
-</div>
+<div class="tablewrap ranking-scroll-wrap"><table>
+<thead><tr><th>Combo</th><th>Batalhas</th><th>Vitórias</th><th>Derrotas</th>
+<th class="sortable-ranking" data-combo-sort="rate">Aproveitamento <span class="sort-arrow" data-combo-arrow="rate">↓</span></th>
+<th class="sortable-ranking" data-combo-sort="points">Pontos <span class="sort-arrow" data-combo-arrow="points"></span></th>
+<th class="sortable-ranking" data-combo-sort="avg">Pontos/Batalha <span class="sort-arrow" data-combo-arrow="avg"></span></th>
+<th class="sortable-ranking" data-combo-sort="Spin Finish">Spin V/D <span class="sort-arrow" data-combo-arrow="Spin Finish"></span></th>
+<th class="sortable-ranking" data-combo-sort="Over Finish">Over V/D <span class="sort-arrow" data-combo-arrow="Over Finish"></span></th>
+<th class="sortable-ranking" data-combo-sort="Burst Finish">Burst V/D <span class="sort-arrow" data-combo-arrow="Burst Finish"></span></th>
+<th class="sortable-ranking" data-combo-sort="Extreme Finish">Extreme V/D <span class="sort-arrow" data-combo-arrow="Extreme Finish"></span></th>
+</tr></thead><tbody id="comboRankingBody"></tbody></table></div></div>
 <div class="card"><h2>Estatísticas por peça utilizada</h2><p class="hint">Selecione o tipo de peça e uma peça específica para ver seu desempenho isolado. Os números consideram somente rounds em que essa peça foi registrada no seu combo.</p>
 <div class="piece-stat-controls">
 <div class="field"><label>Tipo de peça</label><select id="pieceTypeFilter"><option value="blade">Blade</option><option value="ratchet">Ratchet</option><option value="bit">Bit</option><option value="lockChip">Lock Chip</option><option value="assistBlade">Assist Blade</option></select></div>
@@ -493,7 +535,20 @@ thead th{
 <div id="pieceDetailKpis" class="mini-kpis"></div>
 <div class="detail-grid"><div><h3>Vitórias desta peça</h3><div id="pieceWinFinish"></div></div><div><h3>Derrotas desta peça</h3><div id="pieceLossFinish"></div></div></div>
 </div>
-<div class="card"><h2>Ranking de todas as peças utilizadas</h2><div class="hint">Exibindo cerca de 10 linhas por vez. Role a lista para visualizar os demais itens.</div><div class="toolbar"><select id="pieceRankingType"><option value="blade">Blades</option><option value="ratchet">Ratchets</option><option value="bit">Bits</option><option value="lockChip">Lock Chips</option><option value="assistBlade">Assist Blades</option></select><span class="hint">Ordenado por aproveitamento; peças com mais batalhas aparecem primeiro em empates.</span></div><div class="tablewrap ranking-scroll-wrap"><table><thead><tr><th>Peça</th><th>Batalhas</th><th>Vitórias</th><th>Derrotas</th><th>Aproveitamento</th><th>Pontos</th><th>Spin V/D</th><th>Over V/D</th><th>Burst V/D</th><th>Extreme V/D</th></tr></thead><tbody id="pieceRankingBody"></tbody></table></div></div>
+<div class="card"><h2>Ranking de todas as peças utilizadas</h2>
+<div class="hint">Exibindo cerca de 10 linhas por vez. Role a lista para visualizar os demais itens. Clique em uma coluna de desempenho para alterar a classificação.</div>
+<div class="toolbar">
+<select id="pieceRankingType"><option value="blade">Blades</option><option value="ratchet">Ratchets</option><option value="bit">Bits</option><option value="lockChip">Lock Chips</option><option value="assistBlade">Assist Blades</option></select>
+<span id="pieceSortStatus" class="hint">Classificação: Aproveitamento ↓</span>
+</div>
+<div class="tablewrap ranking-scroll-wrap"><table><thead><tr><th>Peça</th><th>Batalhas</th><th>Vitórias</th><th>Derrotas</th>
+<th class="sortable-ranking" data-piece-sort="rate">Aproveitamento <span class="sort-arrow" data-piece-arrow="rate">↓</span></th>
+<th class="sortable-ranking" data-piece-sort="points">Pontos <span class="sort-arrow" data-piece-arrow="points"></span></th>
+<th class="sortable-ranking" data-piece-sort="Spin Finish">Spin V/D <span class="sort-arrow" data-piece-arrow="Spin Finish"></span></th>
+<th class="sortable-ranking" data-piece-sort="Over Finish">Over V/D <span class="sort-arrow" data-piece-arrow="Over Finish"></span></th>
+<th class="sortable-ranking" data-piece-sort="Burst Finish">Burst V/D <span class="sort-arrow" data-piece-arrow="Burst Finish"></span></th>
+<th class="sortable-ranking" data-piece-sort="Extreme Finish">Extreme V/D <span class="sort-arrow" data-piece-arrow="Extreme Finish"></span></th>
+</tr></thead><tbody id="pieceRankingBody"></tbody></table></div></div>
 <div class="stat-grid"><div class="card"><h3>Vitórias por finalização — geral</h3><div id="winFinish"></div></div><div class="card"><h3>Derrotas por finalização — geral</h3><div id="lossFinish"></div></div><div class="card"><h3>Desempenho por Blade</h3><div id="bladeStats"></div></div><div class="card"><h3>Desempenho por Ratchet</h3><div id="ratchetStats"></div></div><div class="card"><h3>Desempenho por Bit</h3><div id="bitStats"></div></div><div class="card"><h3>Desempenho por Lock/Assist</h3><div id="auxStats"></div></div></div></section>
 
 
@@ -549,8 +604,15 @@ thead th{
 </div>
 <div class="card">
   <h2>Ranking dos combos testados</h2>
-  <div class="tablewrap"><table>
-    <thead><tr><th>Combo testado</th><th>Batalhas</th><th>Vitórias</th><th>Derrotas</th><th>Aproveitamento</th><th>PF</th><th>PS</th><th>Saldo</th></tr></thead>
+  <div class="hint">Exibindo cerca de 10 linhas por vez. Role a lista para visualizar os demais itens. Clique em uma coluna de desempenho para alterar a classificação.</div>
+  <div class="toolbar"><span id="testComboSortStatus" class="hint">Classificação: Aproveitamento ↓</span></div>
+  <div class="tablewrap ranking-scroll-wrap"><table>
+    <thead><tr><th>Combo testado</th><th>Batalhas</th><th>Vitórias</th><th>Derrotas</th>
+    <th class="sortable-ranking" data-testcombo-sort="rate">Aproveitamento <span class="sort-arrow" data-testcombo-arrow="rate">↓</span></th>
+    <th class="sortable-ranking" data-testcombo-sort="pf">PF <span class="sort-arrow" data-testcombo-arrow="pf"></span></th>
+    <th class="sortable-ranking" data-testcombo-sort="ps">PS <span class="sort-arrow" data-testcombo-arrow="ps"></span></th>
+    <th class="sortable-ranking" data-testcombo-sort="balance">Saldo <span class="sort-arrow" data-testcombo-arrow="balance"></span></th>
+    </tr></thead>
     <tbody id="testComboStatsBody"></tbody>
   </table></div>
 </div>
@@ -1206,16 +1268,12 @@ const PIECE_LABELS={blade:'Blade',ratchet:'Ratchet',bit:'Bit',lockChip:'Lock Chi
 function pieceRows(key){const m={};scopedData().forEach(b=>{const name=(b[key]||'').trim();if(!name)return;if(!m[name])m[name]={name,n:0,w:0,l:0,points:0,finish:{}};const x=m[name];x.n++;x.points+=(+b.points||0);if(b.result==='Vitória')x.w++;else if(b.result==='Derrota')x.l++;const f=b.finish||'Sem tipo';x.finish[f]??={w:0,l:0};if(b.result==='Vitória')x.finish[f].w++;else x.finish[f].l++;});return Object.values(m)}
 function refreshPieceNames(){const key=$('pieceTypeFilter').value;const rows=pieceRows(key).sort((a,b)=>b.n-a.n||a.name.localeCompare(b.name,'pt-BR'));const prev=$('pieceNameFilter').value;$('pieceNameFilter').innerHTML=rows.length?rows.map(x=>`<option value="${esc(x.name)}">${esc(x.name)} — ${x.n} batalha${x.n===1?'':'s'}</option>`).join(''):'<option value="">Sem dados registrados</option>';if(rows.some(x=>x.name===prev))$('pieceNameFilter').value=prev;renderPieceDetail();}
 function renderPieceDetail(){const key=$('pieceTypeFilter').value,name=$('pieceNameFilter').value;const rows=pieceRows(key);const x=rows.find(r=>r.name===name);if(!x){$('pieceDetailKpis').innerHTML='<div class="empty" style="grid-column:1/-1">Nenhuma batalha registrada com este tipo de peça.</div>';$('pieceWinFinish').innerHTML='<div class="empty">Sem dados.</div>';$('pieceLossFinish').innerHTML='<div class="empty">Sem dados.</div>';return}const rate=x.n?Math.round(x.w/x.n*100):0;const avg=x.n?(x.points/x.n).toFixed(2):'0.00';const vals=[['Batalhas',x.n,''],['Vitórias',x.w,'winText'],['Derrotas',x.l,'lossText'],['Aproveitamento',rate+'%',''],['Pontos',x.points,''],['Pontos/Batalha',avg,'']];$('pieceDetailKpis').innerHTML=vals.map(([l,n,c])=>`<div class="mini-kpi"><div class="n ${c}">${n}</div><div class="l">${l}</div></div>`).join('');let wf={},lf={};Object.entries(x.finish).forEach(([f,v])=>{if(v.w)wf[f]=v.w;if(v.l)lf[f]=v.l});bars('pieceWinFinish',wf,x.w);bars('pieceLossFinish',lf,x.l)}
-function renderPieceRanking(){const key=$('pieceRankingType').value;const rows=pieceRows(key).sort((a,b)=>((b.w/b.n)-(a.w/a.n))||(b.n-a.n)||a.name.localeCompare(b.name,'pt-BR'));const cell=(x,f)=>`${x.finish[f]?.w||0} / ${x.finish[f]?.l||0}`;$('pieceRankingBody').innerHTML=rows.length?rows.map(x=>`<tr><td><b>${esc(x.name)}</b></td><td>${x.n}</td><td class="winText">${x.w}</td><td class="lossText">${x.l}</td><td><b>${Math.round(x.w/x.n*100)}%</b></td><td>${x.points}</td><td>${cell(x,'Spin Finish')}</td><td>${cell(x,'Over Finish')}</td><td>${cell(x,'Burst Finish')}</td><td>${cell(x,'Extreme Finish')}</td></tr>`).join(''):`<tr><td colspan="10" class="empty">Nenhuma peça deste tipo foi registrada nas batalhas.</td></tr>`}
-function renderAuxPerformance(){const lock=pieceRows('lockChip').length,assist=pieceRows('assistBlade').length;if(!lock&&!assist){$('auxStats').innerHTML='<div class="empty">Lock Chip e Assist Blade terão estatísticas quando forem informados nos registros.</div>';return}let html='';if(lock){html+='<div class="hint"><b>Lock Chips</b></div>';const tmp=$('auxStats');}const combined=[];pieceRows('lockChip').forEach(x=>combined.push(['Lock: '+x.name,x]));pieceRows('assistBlade').forEach(x=>combined.push(['Assist: '+x.name,x]));combined.sort((a,b)=>(b[1].w/b[1].n)-(a[1].w/a[1].n));$('auxStats').innerHTML=combined.slice(0,12).map(([k,v])=>{const pc=Math.round(v.w/v.n*100);return `<div class="barrow"><span title="${esc(k)}">${esc(k)}</span><div class="bar"><i style="width:${pc}%"></i></div><b>${pc}%</b></div>`}).join('')}
-
-function comboKey(b){
-  const parts=[
-    ['Lock',b.lockChip],['Blade',b.blade],['Over',b.overBlade],['Metal',b.metalBlade],
-    ['Assist',b.assistBlade],['Ratchet',b.ratchet],['Bit',b.bit]
-  ].filter(x=>(x[1]||'').trim());
-  if(b.blade&&!b.ratchet)parts.splice(parts.length-1,0,['Ratchet','Sem Ratchet']);
-  return parts.map(x=>x[0]+': '+String(x[1]).trim()).join(' | ');
+function renderPieceRanking(){
+  const key=$('pieceRankingType').value,st=rankingSortStates.piece;
+  const rows=pieceRows(key).sort((a,b)=>compareRankingRows(a,b,st,'piece',a.name,b.name));
+  const cell=(x,f)=>`${x.finish[f]?.w||0} / ${x.finish[f]?.l||0}`;
+  $('pieceRankingBody').innerHTML=rows.length?rows.map(x=>`<tr><td><b>${esc(x.name)}</b></td><td>${x.n}</td><td class="winText">${x.w}</td><td class="lossText">${x.l}</td><td><b>${Math.round(x.w/x.n*100)}%</b></td><td>${x.points}</td><td>${cell(x,'Spin Finish')}</td><td>${cell(x,'Over Finish')}</td><td>${cell(x,'Burst Finish')}</td><td>${cell(x,'Extreme Finish')}</td></tr>`).join(''):`<tr><td colspan="10" class="empty">Nenhuma peça deste tipo foi registrada nas batalhas.</td></tr>`;
+  updateGenericRankingSortUI('piece','piece','pieceSortStatus',{rate:'Aproveitamento',points:'Pontos','Spin Finish':'Spin V/D','Over Finish':'Over V/D','Burst Finish':'Burst V/D','Extreme Finish':'Extreme V/D'});
 }
 function comboLabelFromKey(key){
   return key.split(' | ').map(x=>x.replace(/^(Lock|Blade|Over|Metal|Assist|Ratchet|Bit): /,'')).join(' • ');
@@ -1273,15 +1331,108 @@ function renderMatchupDetail(){
   let wf={},lf={};Object.entries(x.finish).forEach(([f,v])=>{if(v.w)wf[f]=v.w;if(v.l)lf[f]=v.l});
   bars('matchupWinFinish',wf,x.w);bars('matchupLossFinish',lf,x.l);
 }
+let matchupRankingSort={key:'rate',dir:'desc'};
+function matchupFinishSortTuple(x,finish){
+  const w=x.finish[finish]?.w||0,l=x.finish[finish]?.l||0;
+  return {balance:w-l,w,l};
+}
+function matchupSortValue(x,key){
+  if(key==='rate')return x.n?x.w/x.n:0;
+  if(key==='points')return +x.points||0;
+  if(TEST_FINISHES?.includes(key))return matchupFinishSortTuple(x,key).balance;
+  return 0;
+}
+function compareMatchupRows(a,b){
+  const key=matchupRankingSort.key,dir=matchupRankingSort.dir==='asc'?1:-1;
+  let av=matchupSortValue(a,key),bv=matchupSortValue(b,key);
+  if(av!==bv)return (av-bv)*dir;
+  if(TEST_FINISHES?.includes(key)){
+    const A=matchupFinishSortTuple(a,key),B=matchupFinishSortTuple(b,key);
+    if(A.w!==B.w)return (A.w-B.w)*dir;
+    if(A.l!==B.l)return (B.l-A.l)*dir;
+  }
+  if((a.w/a.n)!==(b.w/b.n))return ((a.w/a.n)-(b.w/b.n))*-1;
+  if(a.n!==b.n)return b.n-a.n;
+  return a.ownName.localeCompare(b.ownName,'pt-BR')||a.opponent.localeCompare(b.opponent,'pt-BR');
+}
+function updateMatchupSortUI(){
+  document.querySelectorAll('[data-matchup-sort]').forEach(th=>{
+    const active=th.dataset.matchupSort===matchupRankingSort.key;
+    th.classList.toggle('active-sort',active);
+  });
+  document.querySelectorAll('[data-sort-arrow]').forEach(el=>{
+    el.textContent=el.dataset.sortArrow===matchupRankingSort.key?(matchupRankingSort.dir==='desc'?'↓':'↑'):'';
+  });
+  const labels={
+    rate:'Aproveitamento',points:'Pontos','Spin Finish':'Spin V/D',
+    'Over Finish':'Over V/D','Burst Finish':'Burst V/D','Extreme Finish':'Extreme V/D'
+  };
+  const st=$('matchupSortStatus');
+  if(st)st.textContent=`Classificação: ${labels[matchupRankingSort.key]||matchupRankingSort.key} ${matchupRankingSort.dir==='desc'?'↓':'↑'}`;
+}
+function setMatchupRankingSort(key){
+  if(matchupRankingSort.key===key)matchupRankingSort.dir=matchupRankingSort.dir==='desc'?'asc':'desc';
+  else{matchupRankingSort.key=key;matchupRankingSort.dir='desc'}
+  renderMatchupRanking();
+}
 function renderMatchupRanking(){
   const min=+$('matchupMinBattles').value||1;
-  const rows=matchupRows().filter(x=>x.n>=min).sort((a,b)=>((b.w/b.n)-(a.w/a.n))||(b.n-a.n)||a.ownName.localeCompare(b.ownName,'pt-BR'));
+  const rows=matchupRows().filter(x=>x.n>=min).sort(compareMatchupRows);
   const cell=(x,f)=>`${x.finish[f]?.w||0} / ${x.finish[f]?.l||0}`;
   $('matchupRankingBody').innerHTML=rows.length?rows.map(x=>`<tr>
     <td><b>${esc(x.ownName)}</b></td><td>${esc(x.opponent)}</td><td>${x.n}</td>
     <td class="winText">${x.w}</td><td class="lossText">${x.l}</td><td><b>${Math.round(x.w/x.n*100)}%</b></td><td>${x.points}</td>
     <td>${cell(x,'Spin Finish')}</td><td>${cell(x,'Over Finish')}</td><td>${cell(x,'Burst Finish')}</td><td>${cell(x,'Extreme Finish')}</td>
   </tr>`).join(''):`<tr><td colspan="11" class="empty">Nenhum matchup atende ao filtro mínimo.</td></tr>`;
+  updateMatchupSortUI();
+}
+
+
+const rankingSortStates={
+  opponent:{key:'rate',dir:'desc'},
+  combo:{key:'rate',dir:'desc'},
+  piece:{key:'rate',dir:'desc'},
+  testCombo:{key:'rate',dir:'desc'}
+};
+function rankingFinishTuple(x,finish){
+  const w=x.finish?.[finish]?.w||0,l=x.finish?.[finish]?.l||0;
+  return {balance:w-l,w,l};
+}
+function rankingValue(x,key,type){
+  if(key==='rate')return x.n?x.w/x.n:0;
+  if(key==='points')return +x.points||0;
+  if(key==='avg')return x.n?(+x.points||0)/x.n:0;
+  if(key==='pf')return +x.pf||0;
+  if(key==='ps')return +x.ps||0;
+  if(key==='balance')return (+x.pf||0)-(+x.ps||0);
+  if(['Spin Finish','Over Finish','Burst Finish','Extreme Finish'].includes(key))return rankingFinishTuple(x,key).balance;
+  return 0;
+}
+function compareRankingRows(a,b,state,type,nameA,nameB){
+  const dir=state.dir==='asc'?1:-1,key=state.key;
+  const av=rankingValue(a,key,type),bv=rankingValue(b,key,type);
+  if(av!==bv)return (av-bv)*dir;
+  if(['Spin Finish','Over Finish','Burst Finish','Extreme Finish'].includes(key)){
+    const A=rankingFinishTuple(a,key),B=rankingFinishTuple(b,key);
+    if(A.w!==B.w)return (A.w-B.w)*dir;
+    if(A.l!==B.l)return (B.l-A.l)*dir;
+  }
+  const ar=a.n?a.w/a.n:0,br=b.n?b.w/b.n:0;
+  if(ar!==br)return br-ar;
+  if(a.n!==b.n)return b.n-a.n;
+  return String(nameA||'').localeCompare(String(nameB||''),'pt-BR');
+}
+function setGenericRankingSort(type,key,renderFn){
+  const st=rankingSortStates[type];
+  if(st.key===key)st.dir=st.dir==='desc'?'asc':'desc';
+  else{st.key=key;st.dir='desc'}
+  renderFn();
+}
+function updateGenericRankingSortUI(type,attrPrefix,statusId,labels){
+  const st=rankingSortStates[type];
+  document.querySelectorAll(`[data-${attrPrefix}-sort]`).forEach(th=>th.classList.toggle('active-sort',th.dataset[attrPrefix+'Sort']===st.key));
+  document.querySelectorAll(`[data-${attrPrefix}-arrow]`).forEach(el=>el.textContent=el.dataset[attrPrefix+'Arrow']===st.key?(st.dir==='desc'?'↓':'↑'):'');
+  const status=$(statusId);if(status)status.textContent=`Classificação: ${labels[st.key]||st.key} ${st.dir==='desc'?'↓':'↑'}`;
 }
 
 function opponentRows(){
@@ -1289,28 +1440,12 @@ function opponentRows(){
 }
 function refreshOpponentNames(){const r=opponentRows().sort((a,b)=>b.n-a.n||a.name.localeCompare(b.name,'pt-BR'));const p=$('opponentComboFilter').value;$('opponentComboFilter').innerHTML=r.length?r.map(x=>`<option value="${esc(x.name)}">${esc(x.name)} — ${x.n} batalha${x.n===1?'':'s'}</option>`).join(''):'<option value="">Sem adversários registrados</option>';if(r.some(x=>x.name===p))$('opponentComboFilter').value=p;renderOpponentDetail()}
 function renderOpponentDetail(){const x=opponentRows().find(r=>r.name===$('opponentComboFilter').value);if(!x){$('opponentComboKpis').innerHTML='<div class="empty" style="grid-column:1/-1">Sem dados.</div>';$('opponentWinFinish').innerHTML='<div class="empty">Sem dados.</div>';$('opponentLossFinish').innerHTML='<div class="empty">Sem dados.</div>';return}const rate=Math.round(x.w/x.n*100),avg=(x.points/x.n).toFixed(2);$('opponentComboKpis').innerHTML=[['Batalhas',x.n,''],['Vitórias',x.w,'winText'],['Derrotas',x.l,'lossText'],['Aproveitamento',rate+'%',''],['Pontos',x.points,''],['Pontos/Batalha',avg,'']].map(([l,n,c])=>`<div class="mini-kpi"><div class="n ${c}">${n}</div><div class="l">${l}</div></div>`).join('');let wf={},lf={};Object.entries(x.finish).forEach(([f,v])=>{if(v.w)wf[f]=v.w;if(v.l)lf[f]=v.l});bars('opponentWinFinish',wf,x.w);bars('opponentLossFinish',lf,x.l)}
-function renderOpponentRanking(){const min=+$('opponentMinBattles').value||1;const rows=opponentRows().filter(x=>x.n>=min).sort((a,b)=>((b.w/b.n)-(a.w/a.n))||(b.n-a.n));const cell=(x,f)=>`${x.finish[f]?.w||0} / ${x.finish[f]?.l||0}`;$('opponentRankingBody').innerHTML=rows.length?rows.map(x=>`<tr><td><b>${esc(x.name)}</b></td><td>${x.n}</td><td class="winText">${x.w}</td><td class="lossText">${x.l}</td><td><b>${Math.round(x.w/x.n*100)}%</b></td><td>${x.points}</td><td>${cell(x,'Spin Finish')}</td><td>${cell(x,'Over Finish')}</td><td>${cell(x,'Burst Finish')}</td><td>${cell(x,'Extreme Finish')}</td></tr>`).join(''):'<tr><td colspan="10" class="empty">Nenhum combo adversário atende ao filtro.</td></tr>'}
-
-function comboRows(){
-  const m={};
-  scopedData().forEach(b=>{
-    const key=comboKey(b);
-    if(!key || !(b.blade||'').trim() || !(b.ratchet||'').trim() || !(b.bit||'').trim()) return;
-    if(!m[key]) m[key]={key,name:comboLabelFromKey(key),n:0,w:0,l:0,points:0,finish:{},parts:{
-      lockChip:(b.lockChip||'').trim(),blade:(b.blade||'').trim(),assistBlade:(b.assistBlade||'').trim(),
-      ratchet:(b.ratchet||'').trim(),bit:(b.bit||'').trim()
-    }};
-    const x=m[key];
-    x.n++;
-    x.points+=(+b.points||0);
-    if(b.result==='Vitória') x.w++;
-    else if(b.result==='Derrota') x.l++;
-    const f=b.finish||'Sem tipo';
-    x.finish[f]??={w:0,l:0};
-    if(b.result==='Vitória') x.finish[f].w++;
-    else if(b.result==='Derrota') x.finish[f].l++;
-  });
-  return Object.values(m);
+function renderOpponentRanking(){
+  const min=+$('opponentMinBattles').value||1,st=rankingSortStates.opponent;
+  const rows=opponentRows().filter(x=>x.n>=min).sort((a,b)=>compareRankingRows(a,b,st,'opponent',a.name,b.name));
+  const cell=(x,f)=>`${x.finish[f]?.w||0} / ${x.finish[f]?.l||0}`;
+  $('opponentRankingBody').innerHTML=rows.length?rows.map(x=>`<tr><td><b>${esc(x.name)}</b></td><td>${x.n}</td><td class="winText">${x.w}</td><td class="lossText">${x.l}</td><td><b>${Math.round(x.w/x.n*100)}%</b></td><td>${x.points}</td><td>${cell(x,'Spin Finish')}</td><td>${cell(x,'Over Finish')}</td><td>${cell(x,'Burst Finish')}</td><td>${cell(x,'Extreme Finish')}</td></tr>`).join(''):'<tr><td colspan="10" class="empty">Nenhum combo adversário atende ao filtro.</td></tr>';
+  updateGenericRankingSortUI('opponent','opponent','opponentSortStatus',{rate:'Aproveitamento',points:'Pontos','Spin Finish':'Spin V/D','Over Finish':'Over V/D','Burst Finish':'Burst V/D','Extreme Finish':'Extreme V/D'});
 }
 function refreshComboNames(){
   const rows=comboRows().sort((a,b)=>b.n-a.n||a.name.localeCompare(b.name,'pt-BR'));
@@ -1343,18 +1478,14 @@ function renderComboDetail(){
   bars('comboLossFinish',lf,x.l);
 }
 function renderComboRanking(){
-  const min=+$('comboMinBattles').value||1;
-  const rows=comboRows().filter(x=>x.n>=min).sort((a,b)=>((b.w/b.n)-(a.w/a.n))||(b.n-a.n)||a.name.localeCompare(b.name,'pt-BR'));
+  const min=+$('comboMinBattles').value||1,st=rankingSortStates.combo;
+  const rows=comboRows().filter(x=>x.n>=min).sort((a,b)=>compareRankingRows(a,b,st,'combo',a.name,b.name));
   const cell=(x,f)=>`${x.finish[f]?.w||0} / ${x.finish[f]?.l||0}`;
   $('comboRankingBody').innerHTML=rows.length?rows.map(x=>{
-    const rate=Math.round(x.w/x.n*100);
-    const avg=(x.points/x.n).toFixed(2);
-    return `<tr>
-      <td><b>${esc(x.name)}</b></td><td>${x.n}</td><td class="winText">${x.w}</td><td class="lossText">${x.l}</td>
-      <td><b>${rate}%</b></td><td>${x.points}</td><td>${avg}</td>
-      <td>${cell(x,'Spin Finish')}</td><td>${cell(x,'Over Finish')}</td><td>${cell(x,'Burst Finish')}</td><td>${cell(x,'Extreme Finish')}</td>
-    </tr>`;
+    const rate=Math.round(x.w/x.n*100),avg=(x.points/x.n).toFixed(2);
+    return `<tr><td><b>${esc(x.name)}</b></td><td>${x.n}</td><td class="winText">${x.w}</td><td class="lossText">${x.l}</td><td><b>${rate}%</b></td><td>${x.points}</td><td>${avg}</td><td>${cell(x,'Spin Finish')}</td><td>${cell(x,'Over Finish')}</td><td>${cell(x,'Burst Finish')}</td><td>${cell(x,'Extreme Finish')}</td></tr>`;
   }).join(''):`<tr><td colspan="11" class="empty">Nenhum combo atende ao filtro de batalhas mínimas.</td></tr>`;
+  updateGenericRankingSortUI('combo','combo','comboSortStatus',{rate:'Aproveitamento',points:'Pontos',avg:'Pontos/Batalha','Spin Finish':'Spin V/D','Over Finish':'Over V/D','Burst Finish':'Burst V/D','Extreme Finish':'Extreme V/D'});
 }
 
 
@@ -1806,8 +1937,10 @@ function renderTestStats(){
   const fcell=(x,f)=>`${x.finish[f]?.w||0} / ${x.finish[f]?.l||0}`;
   const opp=testAggregateBy(b=>b.opponent).sort((a,b)=>(b.w/b.n)-(a.w/a.n)||b.n-a.n);
   $('testOpponentStatsBody').innerHTML=opp.length?opp.map(x=>{const s=x.pf-x.ps;return `<tr><td><b>${esc(x.key)}</b></td><td>${x.n}</td><td>${x.w}</td><td>${x.l}</td><td><b>${Math.round(x.w/x.n*100)}%</b></td><td>${x.pf}</td><td>${x.ps}</td><td class="${s>=0?'winText':'lossText'}"><b>${s>0?'+':''}${s}</b></td><td>${fcell(x,'Spin Finish')}</td><td>${fcell(x,'Over Finish')}</td><td>${fcell(x,'Burst Finish')}</td><td>${fcell(x,'Extreme Finish')}</td></tr>`}).join(''):'<tr><td colspan="12" class="empty">Nenhum teste registrado.</td></tr>';
-  const combos=testAggregateBy(b=>comboKey(b)).map(x=>({...x,label:comboLabelFromKey(x.key)})).sort((a,b)=>(b.w/b.n)-(a.w/a.n)||(b.pf-b.ps)-(a.pf-a.ps)||b.n-a.n);
+  const testState=rankingSortStates.testCombo;
+  const combos=testAggregateBy(b=>comboKey(b)).map(x=>({...x,label:comboLabelFromKey(x.key)})).sort((a,b)=>compareRankingRows(a,b,testState,'testCombo',a.label,b.label));
   $('testComboStatsBody').innerHTML=combos.length?combos.map(x=>{const s=x.pf-x.ps;return `<tr><td><b>${esc(x.label)}</b></td><td>${x.n}</td><td>${x.w}</td><td>${x.l}</td><td><b>${Math.round(x.w/x.n*100)}%</b></td><td>${x.pf}</td><td>${x.ps}</td><td class="${s>=0?'winText':'lossText'}"><b>${s>0?'+':''}${s}</b></td></tr>`}).join(''):'<tr><td colspan="8" class="empty">Nenhum combo testado.</td></tr>';
+  updateGenericRankingSortUI('testCombo','testcombo','testComboSortStatus',{rate:'Aproveitamento',pf:'PF',ps:'PS',balance:'Saldo'});
   renderSelectedTestComboStats();
 }
 
@@ -1862,7 +1995,7 @@ $('saveCurrentOpponentPreset').onclick=saveOpponentPresetFromForm;
 $('saveFavoriteCombo').onclick=saveCurrentFavorite;
 ['lockChipSelect','bladeSelect','overBladeSelect','metalBladeSelect','assistBladeSelect','ratchetSelect','bitSelect','lockChipManual','bladeManual','overBladeManual','metalBladeManual','assistBladeManual','ratchetManual','bitManual'].forEach(id=>{const e=$(id);if(e)e.addEventListener('input',updateFavoritePreview)});
 $('battleMode').onchange=()=>{if($('battleMode').value==='__tests__'){document.querySelector('[data-tab="combo-tests"]').click();$('battleMode').value='Competitiva';}};
-$('winBtn').onclick=()=>{currentResult='Vitória';updateResultUI()};$('lossBtn').onclick=()=>{currentResult='Derrota';updateResultUI()};$('finish').onchange=updateResultUI;$('saveBtn').onclick=addBattle;$('clearBtn').onclick=clearForm;['search','filterMode','filterResult','filterFinish'].forEach(x=>$(x).addEventListener('input',renderHistory));$('tournamentStatsFilter').onchange=renderTournamentStats;$('tournamentModeFilter').onchange=renderTournamentStats;$('statsScope').onchange=renderStats;$('matchupUserComboFilter').onchange=renderMatchupDetail;$('matchupOpponentFilter').onchange=renderMatchupDetail;$('matchupMinBattles').onchange=renderMatchupRanking;$('opponentComboFilter').onchange=renderOpponentDetail;$('opponentMinBattles').onchange=renderOpponentRanking;$('comboNameFilter').onchange=renderComboDetail;$('comboMinBattles').onchange=renderComboRanking;$('pieceTypeFilter').onchange=refreshPieceNames;$('pieceNameFilter').onchange=renderPieceDetail;$('pieceRankingType').onchange=renderPieceRanking;$('exportCsv').onclick=()=>dl('beyblade_x_batalhas.csv',csv(),'text/csv;charset=utf-8');$('exportJson').onclick=()=>dl('beyblade_x_backup.json',JSON.stringify({battles:data,collection,favoriteCombos,opponentPresets,customTestOpponents},null,2),'application/json');$('importJson').onchange=e=>{const f=e.target.files[0];if(!f)return;const rd=new FileReader();rd.onload=()=>{try{const v=JSON.parse(rd.result);const battles=Array.isArray(v)?v:v.battles;if(!Array.isArray(battles))throw 0;if(confirm('Substituir o histórico atual pelo backup selecionado?')){data=battles;if(v&&v.collection){COLLECTION_TYPES.forEach(k=>collection[k]=Array.isArray(v.collection[k])?v.collection[k]:[]);saveCollection();renderCollection();refreshBattleDatalists();}if(v&&Array.isArray(v.favoriteCombos)){favoriteCombos=v.favoriteCombos;saveFavoriteCombos();renderFavoriteCombos();refreshComboQuickMenus();}if(v&&Array.isArray(v.opponentPresets)){opponentPresets=v.opponentPresets;saveOpponentPresets();renderOpponentPresets();refreshOpponentPresetMenu();}if(v&&Array.isArray(v.customTestOpponents)){customTestOpponents=v.customTestOpponents.map(x=>String(x||'').trim()).filter(Boolean);saveCustomTestOpponents();}save();renderAll();alert('Backup importado.')}}catch(_){alert('Arquivo JSON inválido.')}};rd.readAsText(f);e.target.value=''};
+$('winBtn').onclick=()=>{currentResult='Vitória';updateResultUI()};$('lossBtn').onclick=()=>{currentResult='Derrota';updateResultUI()};$('finish').onchange=updateResultUI;$('saveBtn').onclick=addBattle;$('clearBtn').onclick=clearForm;['search','filterMode','filterResult','filterFinish'].forEach(x=>$(x).addEventListener('input',renderHistory));$('tournamentStatsFilter').onchange=renderTournamentStats;$('tournamentModeFilter').onchange=renderTournamentStats;$('statsScope').onchange=renderStats;$('matchupUserComboFilter').onchange=renderMatchupDetail;$('matchupOpponentFilter').onchange=renderMatchupDetail;$('matchupMinBattles').onchange=renderMatchupRanking;document.querySelectorAll('[data-matchup-sort]').forEach(th=>th.addEventListener('click',()=>setMatchupRankingSort(th.dataset.matchupSort)));$('opponentComboFilter').onchange=renderOpponentDetail;$('opponentMinBattles').onchange=renderOpponentRanking;document.querySelectorAll('[data-opponent-sort]').forEach(th=>th.addEventListener('click',()=>setGenericRankingSort('opponent',th.dataset.opponentSort,renderOpponentRanking)));$('comboNameFilter').onchange=renderComboDetail;$('comboMinBattles').onchange=renderComboRanking;document.querySelectorAll('[data-combo-sort]').forEach(th=>th.addEventListener('click',()=>setGenericRankingSort('combo',th.dataset.comboSort,renderComboRanking)));$('pieceTypeFilter').onchange=refreshPieceNames;$('pieceNameFilter').onchange=renderPieceDetail;$('pieceRankingType').onchange=renderPieceRanking;document.querySelectorAll('[data-piece-sort]').forEach(th=>th.addEventListener('click',()=>setGenericRankingSort('piece',th.dataset.pieceSort,renderPieceRanking)));document.querySelectorAll('[data-testcombo-sort]').forEach(th=>th.addEventListener('click',()=>setGenericRankingSort('testCombo',th.dataset.testcomboSort,renderTestStats)));$('exportCsv').onclick=()=>dl('beyblade_x_batalhas.csv',csv(),'text/csv;charset=utf-8');$('exportJson').onclick=()=>dl('beyblade_x_backup.json',JSON.stringify({battles:data,collection,favoriteCombos,opponentPresets,customTestOpponents},null,2),'application/json');$('importJson').onchange=e=>{const f=e.target.files[0];if(!f)return;const rd=new FileReader();rd.onload=()=>{try{const v=JSON.parse(rd.result);const battles=Array.isArray(v)?v:v.battles;if(!Array.isArray(battles))throw 0;if(confirm('Substituir o histórico atual pelo backup selecionado?')){data=battles;if(v&&v.collection){COLLECTION_TYPES.forEach(k=>collection[k]=Array.isArray(v.collection[k])?v.collection[k]:[]);saveCollection();renderCollection();refreshBattleDatalists();}if(v&&Array.isArray(v.favoriteCombos)){favoriteCombos=v.favoriteCombos;saveFavoriteCombos();renderFavoriteCombos();refreshComboQuickMenus();}if(v&&Array.isArray(v.opponentPresets)){opponentPresets=v.opponentPresets;saveOpponentPresets();renderOpponentPresets();refreshOpponentPresetMenu();}if(v&&Array.isArray(v.customTestOpponents)){customTestOpponents=v.customTestOpponents.map(x=>String(x||'').trim()).filter(Boolean);saveCustomTestOpponents();}save();renderAll();alert('Backup importado.')}}catch(_){alert('Arquivo JSON inválido.')}};rd.readAsText(f);e.target.value=''};
 }
 init();
 </script>

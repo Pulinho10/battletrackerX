@@ -204,3 +204,42 @@ ATUALIZAÇÃO — LAYOUT BEYJOURNAL X
   * Ranking de todas as peças utilizadas
   agora aparecem em áreas com rolagem interna, mostrando aproximadamente 10 linhas por vez
   e permitindo ver o restante por rolagem interativa.
+
+ATUALIZAÇÃO — RANKING DE MATCHUPS
+
+- Ranking de Matchups agora usa a mesma área com rolagem interna dos demais rankings,
+  exibindo aproximadamente 10 linhas por vez.
+- Cabeçalhos clicáveis:
+  Aproveitamento
+  Pontos
+  Spin V/D
+  Over V/D
+  Burst V/D
+  Extreme V/D
+- Primeiro clique: ordem decrescente.
+- Segundo clique na mesma coluna: inverte para crescente.
+- Nas colunas V/D, o principal critério é saldo da finalização (vitórias - derrotas).
+  Em empate: mais vitórias, depois menos derrotas.
+- A seta no cabeçalho e o texto acima do ranking mostram a classificação ativa.
+
+ATUALIZAÇÃO — RANKINGS UNIFORMIZADOS
+
+Todos os rankings agora seguem o padrão visual/interativo do Ranking de Matchups:
+- aproximadamente 10 linhas visíveis por vez
+- rolagem interna para os demais registros
+- cabeçalhos de desempenho clicáveis
+- primeiro clique ordena de maior para menor
+- segundo clique inverte a ordem
+- seta visual e texto mostram o critério ativo
+
+Rankings padronizados:
+1. Ranking de Matchups
+2. Ranking contra combos adversários
+3. Ranking de combos utilizados
+4. Ranking de todas as peças utilizadas
+5. Ranking dos combos testados
+
+Critérios disponíveis:
+- Matchups / adversários / peças: Aproveitamento, Pontos, Spin V/D, Over V/D, Burst V/D, Extreme V/D
+- Combos utilizados: os anteriores + Pontos/Batalha
+- Combos testados: Aproveitamento, PF, PS e Saldo
