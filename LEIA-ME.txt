@@ -190,3 +190,17 @@ ATUALIZAÇÃO — OPONENTES PERSONALIZADOS EM TESTES DE COMBOS
 - Confrontos antigos contra adversários removidos continuam no histórico e nas estatísticas.
 - Stats Testes e análise individual por combo incluem adversários personalizados.
 - O backup JSON agora inclui também a lista de combos personalizados de testes.
+
+ATUALIZAÇÃO — LAYOUT BEYJOURNAL X
+
+- Novo nome da aplicação: BeyJournal X - Battle Tracker
+- Novo logo embutido com ilustração de piões de madeira colidindo
+- Fundo geral alterado para preto
+- Mantidas as fontes e a identidade de leitura do app
+- Cabeçalho visualmente mais limpo e fixo no topo para facilitar a navegação
+- Na aba Estatísticas, os rankings:
+  * Ranking contra combos adversários
+  * Ranking de combos utilizados
+  * Ranking de todas as peças utilizadas
+  agora aparecem em áreas com rolagem interna, mostrando aproximadamente 10 linhas por vez
+  e permitindo ver o restante por rolagem interativa.
