@@ -343,7 +343,7 @@ thead th{
 
 <section id="tab-new">
 <div class="notice mobile-install"><b>Instalação no celular:</b> no iPhone/iPad, abra no Safari e use <b>Compartilhar → Adicionar à Tela de Início</b>. No Android/Chrome, use <b>Instalar app</b> ou <b>Adicionar à tela inicial</b>.</div>
-<div class="notice"><b>Catálogo atualizado em 30/10/2026:</b> inclui os lançamentos Takara Tomy/Hasbro já disponíveis até esta data, incluindo Luster Dragoon 6-60LC e Kid Hunt K4-70TK. Produtos com lançamento posterior a 30/10/2026 permanecem fora da lista de já lançados.</div><div class="notice"><b>Versão geral:</b> o histórico começa vazio. Registre partidas competitivas e treinos; os dados ficam salvos neste dispositivo até você exportar um backup.</div>
+<div class="notice"><b>Catálogo atualizado em 30/10/2026:</b> inclui os lançamentos Takara Tomy/Hasbro já disponíveis até esta data, incluindo Luster Dragoon 6-60LC e Kid Hunt K4-70TK. Produtos com lançamento posterior a 30/10/2026 permanecem fora da lista de já lançados.</div><div class="notice"><b>Correção de navegação aplicada:</b> as abas agora são ativadas antes da renderização das estatísticas, evitando que falhas em rankings impeçam a navegação.</div><div class="notice"><b>Versão geral:</b> o histórico começa vazio. Registre partidas competitivas e treinos; os dados ficam salvos neste dispositivo até você exportar um backup.</div>
 <div class="card"><h2>Registrar batalha</h2>
 <div class="quick-combo-panel">
 <div class="field"><label>Usar combo já utilizado</label><select id="usedComboSelect"><option value="">Selecione um combo anterior</option></select></div>
@@ -1275,6 +1275,17 @@ function renderPieceRanking(){
   $('pieceRankingBody').innerHTML=rows.length?rows.map(x=>`<tr><td><b>${esc(x.name)}</b></td><td>${x.n}</td><td class="winText">${x.w}</td><td class="lossText">${x.l}</td><td><b>${Math.round(x.w/x.n*100)}%</b></td><td>${x.points}</td><td>${cell(x,'Spin Finish')}</td><td>${cell(x,'Over Finish')}</td><td>${cell(x,'Burst Finish')}</td><td>${cell(x,'Extreme Finish')}</td></tr>`).join(''):`<tr><td colspan="10" class="empty">Nenhuma peça deste tipo foi registrada nas batalhas.</td></tr>`;
   updateGenericRankingSortUI('piece','piece','pieceSortStatus',{rate:'Aproveitamento',points:'Pontos','Spin Finish':'Spin V/D','Over Finish':'Over V/D','Burst Finish':'Burst V/D','Extreme Finish':'Extreme V/D'});
 }
+function renderAuxPerformance(){const lock=pieceRows('lockChip').length,assist=pieceRows('assistBlade').length;if(!lock&&!assist){$('auxStats').innerHTML='<div class="empty">Lock Chip e Assist Blade terão estatísticas quando forem informados nos registros.</div>';return}let html='';if(lock){html+='<div class="hint"><b>Lock Chips</b></div>';const tmp=$('auxStats');}const combined=[];pieceRows('lockChip').forEach(x=>combined.push(['Lock: '+x.name,x]));pieceRows('assistBlade').forEach(x=>combined.push(['Assist: '+x.name,x]));combined.sort((a,b)=>(b[1].w/b[1].n)-(a[1].w/a[1].n));$('auxStats').innerHTML=combined.slice(0,12).map(([k,v])=>{const pc=Math.round(v.w/v.n*100);return `<div class="barrow"><span title="${esc(k)}">${esc(k)}</span><div class="bar"><i style="width:${pc}%"></i></div><b>${pc}%</b></div>`}).join('')}
+
+function comboKey(b){
+  const parts=[
+    ['Lock',b.lockChip],['Blade',b.blade],['Over',b.overBlade],['Metal',b.metalBlade],
+    ['Assist',b.assistBlade],['Ratchet',b.ratchet],['Bit',b.bit]
+  ].filter(x=>(x[1]||'').trim());
+  if(b.blade&&!b.ratchet)parts.splice(parts.length-1,0,['Ratchet','Sem Ratchet']);
+  return parts.map(x=>x[0]+': '+String(x[1]).trim()).join(' | ');
+}
+
 function comboLabelFromKey(key){
   return key.split(' | ').map(x=>x.replace(/^(Lock|Blade|Over|Metal|Assist|Ratchet|Bit): /,'')).join(' • ');
 }
@@ -1447,6 +1458,26 @@ function renderOpponentRanking(){
   $('opponentRankingBody').innerHTML=rows.length?rows.map(x=>`<tr><td><b>${esc(x.name)}</b></td><td>${x.n}</td><td class="winText">${x.w}</td><td class="lossText">${x.l}</td><td><b>${Math.round(x.w/x.n*100)}%</b></td><td>${x.points}</td><td>${cell(x,'Spin Finish')}</td><td>${cell(x,'Over Finish')}</td><td>${cell(x,'Burst Finish')}</td><td>${cell(x,'Extreme Finish')}</td></tr>`).join(''):'<tr><td colspan="10" class="empty">Nenhum combo adversário atende ao filtro.</td></tr>';
   updateGenericRankingSortUI('opponent','opponent','opponentSortStatus',{rate:'Aproveitamento',points:'Pontos','Spin Finish':'Spin V/D','Over Finish':'Over V/D','Burst Finish':'Burst V/D','Extreme Finish':'Extreme V/D'});
 }
+function comboRows(){
+  const m={};
+  scopedData().forEach(b=>{
+    const key=comboKey(b);
+    if(!key || !(b.blade||'').trim() || !(b.bit||'').trim()) return;
+    if(!m[key])m[key]={key,name:comboLabelFromKey(key),n:0,w:0,l:0,points:0,finish:{},parts:{
+      lockChip:(b.lockChip||'').trim(),blade:(b.blade||'').trim(),overBlade:(b.overBlade||'').trim(),
+      metalBlade:(b.metalBlade||'').trim(),assistBlade:(b.assistBlade||'').trim(),
+      ratchet:(b.ratchet||'').trim(),bit:(b.bit||'').trim()
+    }};
+    const x=m[key];
+    x.n++;x.points+=(+b.points||0);
+    if(b.result==='Vitória')x.w++;else if(b.result==='Derrota')x.l++;
+    const f=b.finish||'Sem tipo';
+    x.finish[f]??={w:0,l:0};
+    if(b.result==='Vitória')x.finish[f].w++;else if(b.result==='Derrota')x.finish[f].l++;
+  });
+  return Object.values(m);
+}
+
 function refreshComboNames(){
   const rows=comboRows().sort((a,b)=>b.n-a.n||a.name.localeCompare(b.name,'pt-BR'));
   const prev=$('comboNameFilter').value;
@@ -1960,8 +1991,10 @@ if(!bit){alert('Selecione ou informe o Bit.');return}
 const b={id:'b-'+Date.now(),createdAt:new Date().toISOString(),mode:$('battleMode').value,tournament:$('tournament').value.trim(),game:$('game').value.trim(),round:+$('round').value||1,lockChip:selectPieceValue('lockChip'),blade,overBlade:selectPieceValue('overBlade'),metalBlade:selectPieceValue('metalBlade'),assistBlade:selectPieceValue('assistBlade'),ratchet,bit,opponent:$('opponent').value.trim(),result:currentResult,finish:$('finish').value,points:pointFor(currentResult,$('finish').value),notes:$('notes').value.trim(),source:'Aplicativo'};data.push(b);save();refreshComboQuickMenus();$('saveMsg').textContent='Batalha salva ✓';setTimeout(()=>$('saveMsg').textContent='',1800);clearForm();renderAll();}
 function dl(name,content,type){const blob=new Blob([content],{type});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
 function csv(){const cols=['mode','tournament','game','round','lockChip','blade','overBlade','metalBlade','assistBlade','ratchet','bit','opponent','result','finish','points','notes'];const q=v=>'"'+String(v??'').replace(/"/g,'""')+'"';return '\ufeff'+[cols.join(';'),...data.map(b=>cols.map(c=>q(b[c])).join(';'))].join('\r\n')}
-function init(){load();loadCollection();loadFavoriteCombos();loadOpponentPresets();loadCustomTestOpponents();refreshBattleDatalists();bindPieceDropdowns();refreshTestPieceSelects();renderPieces();renderCollection();setTimeout(()=>hydratePieceImages($('tab-pieces')),0);renderOpponentPresets();refreshOpponentPresetMenu();renderFavoriteCombos();refreshComboQuickMenus();renderAll();updateResultUI();updateFavoritePreview();
+function bindTabNavigation(){
  document.querySelectorAll('.nav button').forEach(btn=>btn.onclick=()=>{document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('active'));btn.classList.add('active');['new','combo-tests','history','stats','test-stats','tournaments','pieces'].forEach(t=>$('tab-'+t).classList.toggle('hidden',t!==btn.dataset.tab));if(btn.dataset.tab==='history')renderHistory();if(btn.dataset.tab==='stats')renderStats();if(btn.dataset.tab==='combo-tests'){refreshTestPieceSelects();renderTestOpponentCards();}if(btn.dataset.tab==='test-stats')renderTestStats();if(btn.dataset.tab==='tournaments')refreshTournamentFilter()});
+}
+function init(){bindTabNavigation();load();loadCollection();loadFavoriteCombos();loadOpponentPresets();loadCustomTestOpponents();refreshBattleDatalists();bindPieceDropdowns();refreshTestPieceSelects();renderPieces();renderCollection();setTimeout(()=>hydratePieceImages($('tab-pieces')),0);renderOpponentPresets();refreshOpponentPresetMenu();renderFavoriteCombos();refreshComboQuickMenus();renderAll();updateResultUI();updateFavoritePreview();
  
  document.querySelectorAll('[data-add-piece]').forEach(btn=>btn.onclick=()=>{
    const type=btn.dataset.addPiece;

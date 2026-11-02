@@ -243,3 +243,17 @@ Critérios disponíveis:
 - Matchups / adversários / peças: Aproveitamento, Pontos, Spin V/D, Over V/D, Burst V/D, Extreme V/D
 - Combos utilizados: os anteriores + Pontos/Batalha
 - Combos testados: Aproveitamento, PF, PS e Saldo
+
+CORREÇÃO — NAVEGAÇÃO ENTRE ABAS
+
+Problema identificado:
+- a uniformização dos rankings removeu acidentalmente três funções usadas na inicialização:
+  comboKey, comboRows e renderAuxPerformance
+- isso interrompia renderAll() antes de os eventos das abas serem registrados
+
+Correções:
+- funções restauradas
+- comboRows atualizado para aceitar também combos Sem Ratchet
+- navegação das abas agora é registrada no início da inicialização
+- rankings uniformizados mantidos
+- cache da PWA atualizado
